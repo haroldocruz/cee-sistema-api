@@ -16,7 +16,7 @@ export const errLowLevel = { statusCode: 403, statusMessage: "Necessário elevar
 export const errNoAuth = { statusCode: 401, statusMessage: "Somente usuários autenticados podem realizar esta ação"};
 //CONNECT
 export const errTokenOrUser = { statusCode: 400, statusMessage: 'Problema com seu token ou usuário'};
-export const errToken = { statusCode: 400, statusMessage: 'Token inválido'};
+export const errToken = { statusCode: 400, statusMessage: 'Token inválido ou expirado'};
 export const errNoToken = { statusCode: 401, statusMessage: 'Acesso restrito'};
 //CREATE
 export const errMailExist = { statusCode: 400, statusMessage: 'Email já cadastrado'};

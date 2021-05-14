@@ -16,13 +16,13 @@ export interface IAuthCtrl {
 
 export default function () {
 
-    const ItemModel = <Model<IUser>>model('user');
+    const UserModel = <Model<IUser>>model('user');
 
     return {
-        'login': fnLogIn(ItemModel),
-        'logout': fnLogOut(ItemModel),
-        'logon': fnLogOn(ItemModel),
-        'logoff': fnLogOff(ItemModel),
+        'login': fnLogIn(UserModel),
+        'logout': fnLogOut(UserModel),
+        'logon': fnLogOn(UserModel),
+        'logoff': fnLogOff(UserModel),
     }
 }
 
