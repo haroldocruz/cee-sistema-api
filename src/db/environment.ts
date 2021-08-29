@@ -1,5 +1,5 @@
 // dev-local | dev-local-docker | dev-remote-atlas
-var env = "dev-local"
+var env = "dev-local-docker"
 
 const local = {
     protocol: 'mongodb://',

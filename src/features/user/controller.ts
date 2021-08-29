@@ -58,7 +58,7 @@ function getAll(ItemModel: Model<IUser>) {
         console.log("\tUSER_READ_ALL\n")
 
         ItemModel.find({}, (error: any, resp: any) => { (error || !resp) ? callback(MSG.errFind) : callback(resp) })
-            .populate({ path: 'dataAccess.groupList' })
+            .populate({ path: 'dataAccess.profileList' })
             // .select('groups')
             .sort('order')
     }

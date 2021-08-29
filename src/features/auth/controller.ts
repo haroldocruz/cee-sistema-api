@@ -52,27 +52,28 @@ function fnLogIn(User: Model<IUser>) {
         try {
             //buscar usuário no DB pelo 'email' ou 'cpf'
             const user = await User.findOne({ [key]: req.body.username })
-            .select('+dataAccess.passwordHash +dataAccess.profileList +dataAccess.profileDefault')
-            .populate("dataAccess.profileList dataAccess.profileDefault");
+                .select('+dataAccess.passwordHash +dataAccess.profileList +dataAccess.profileDefault')
+                .populate("dataAccess.profileList dataAccess.profileDefault");
 
-            if(!user.status){
-                callback(MSG.errUserDeactived);
-                return;
-            }
+                console.log(user)
+            //verificar se retornou algum usuário do DB
+            if (!user) { callback(MSG.errUserAbsent); return; }
+
+            //verificar se o usuário está ativo
+            if (!user.status) { callback(MSG.errUserDeactived); return; }
 
             //verificar autenticidade do usuário
-            autentication(req, <IUser>user, callback)
+            autentication(req, <IUser>user, callback);
 
         } catch (error) {
-            console.log(error)
+            console.log(error);
+            callback(MSG.errConn);
         }
     }
 
     async function autentication(req: Request, user: IUser, callback: Function) {
 
-        //verificar se retornou algum usuário do DB
-        if (!user) { callback(MSG.errUserAbsent); return; }
-        //verificar se usuário possui senha guardada no DB
+        //verificar se usuário possui senha salva no DB
         if (!user.dataAccess.passwordHash) { callback(MSG.errPass); return; }
 
         //verificar se a senha enviada é diferente da senha salva criptografada no DB
@@ -105,14 +106,14 @@ function fnLogIn(User: Model<IUser>) {
             //gerar o token
             const token = await Crypt.generateToken(formattedToken);
 
-            //atualizar informações de login
+            //formatar informações de login
             user.loginInfo.lastDate = user.loginInfo.actualDate;
             user.loginInfo.actualDate = actualDate;
             user.loginInfo.ipClient = ipClient;
             user.loginInfo.profileLogin = profileLogin;
             user.loginInfo.token = token;
 
-            //responder e guardar as novas informações de login no DB
+            //responder cliente e guardar novas informações de login no DB
             userLoginInfoUpdate(user, callback);
         } else {
             callback(MSG.errPass);

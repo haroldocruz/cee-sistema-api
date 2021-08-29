@@ -1,14 +1,14 @@
 import mongoose, { ConnectionOptions } from "mongoose";
-import { URI } from "./environment"
+import { URI } from "./environment";
 
 const connectionOptions: ConnectionOptions = {
     'useNewUrlParser': true,
     'useUnifiedTopology': true
 };
 
-const db = mongoose.connection
+const db = mongoose.connection;
 
-db.on('error', console.error.bind(console, 'connection error:'))
+db.on('error', console.error.bind(console, 'connection error:'));
 
 mongoose.connect( URI, connectionOptions);
 

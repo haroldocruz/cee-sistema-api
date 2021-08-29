@@ -13,6 +13,7 @@ export enum MaritalStatusEnum {
     MARIED = "Casado(a)",
     DIVORCED = "Divorciado(a)",
     WIDOWER = "Viúvo(a)",
+    UNINFORMED = "Não informado",
 }
 
 // export interface IRg {
@@ -53,10 +54,10 @@ export interface IUserBase {
     'status': boolean;
     // 'status': string;
     'name': string;
-    'cpf': number;
+    'cpf': string;
     // 'rg': IRg;
     'gender': string;
-    // 'maritalStatus': string;
+    'maritalStatus': string;
     'birthDate': Date;
     'contact': IContact;
     'dataAccess': IDataAccess;
@@ -72,7 +73,7 @@ export const User = {
     'status': { type: Boolean, default: false },
     // 'status': { type: String, default: "Inativo" },
     'name': { type: String },
-    'cpf': { type: Number },
+    'cpf': { type: String },
     // 'rg': {
     //     'number': { type: Number },
     //     'expeditionDate': { type: Date },
@@ -80,7 +81,7 @@ export const User = {
     //     'uf': String
     // },
     'gender': String,
-    // 'maritalStatus': String,
+    'maritalStatus': String,
     'birthDate': Date,
     'contact': {
         "emailList": [{

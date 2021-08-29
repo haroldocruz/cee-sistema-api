@@ -1,7 +1,9 @@
 import router from "./router";
+import cc from './clearCache';
+// const clearCache = require('./clearCache');
 
-require('./clearCache')();
+cc()
 
-module.exports = function (itemName: any, obj: {}) {
+export = function (itemName: any, obj: {}) {
     return router(itemName, obj);
 }
