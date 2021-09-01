@@ -41,9 +41,14 @@ function preSaveOrUpdatePasswordHash(itemSchema) {
         const User = (this.getUpdate) ? <IUser>this.getUpdate() : <IUser>this;
         
         if (User.dataAccess?.password) {
-            User.dataAccess.passwordHash = await Crypt.createHash(User.dataAccess.password);
+            User.dataAccess.passwordHash = await Crypt.createHash(User.dataAccess?.password);
             User.dataAccess.password = undefined;
             delete User.dataAccess.password;
+        }
+        if (User['dataAccess.password']) {
+            User['dataAccess.passwordHash'] = await Crypt.createHash(User['dataAccess.password']);
+            User['dataAccess.password'] = undefined;
+            delete User['dataAccess.password'];
         }
     });
 }
