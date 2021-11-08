@@ -32,11 +32,17 @@ export enum MaritalStatusEnum {
 //     RECADO = "Recado"
 // }
 
+export interface IUserImage {
+    avatarUrl: string;
+    photoUrl: string;
+}
+
 export interface ILoginInfo {
+    'accessCount'?: Number;
     'lastDate'?: Date;
     'actualDate'?: Date;
     'ipClient'?: string;
-    "profileLogin"?: IProfile;
+    "_profileLogin"?: IProfile;
     "token"?: string;
     "providerId"?: string;
     "providerKey"?: string;
@@ -46,12 +52,13 @@ export interface IDataAccess {
     "username"?: string;
     "password": string;
     "passwordHash": string;
-    "profileDefault": IProfile;
-    "profileList"?: [IProfile];
+    "_profileDefault": IProfile;
+    "_profileList"?: [IProfile];
 }
 
 export interface IUserBase {
     'status': boolean;
+    "image"?: IUserImage;
     // 'status': string;
     'name': string;
     'cpf': string;
@@ -71,6 +78,10 @@ export interface IUser2 extends Model<Document> { }
 
 export const User = {
     'status': { type: Boolean, default: false },
+    "image": {
+        avatarUrl: { type: String },
+        photoUrl: { type: String }
+    },
     // 'status': { type: String, default: "Inativo" },
     'name': { type: String },
     'cpf': { type: String },
@@ -108,15 +119,16 @@ export const User = {
         'username': String,
         'password': { type: String, select: false },
         'passwordHash': { type: String, select: false }, //encrypted
-        'profileDefault': { type: Schema.Types.ObjectId, ref: "profile" },
-        'profileList': [{ type: Schema.Types.ObjectId, ref: "profile", select: false }],
+        '_profileDefault': { type: Schema.Types.ObjectId, ref: "profile" },
+        '_profileList': [{ type: Schema.Types.ObjectId, ref: "profile", select: false }],
     },
     'loginInfo': {
+        'accessCount': { type: Number, default: 0 },
         'lastDate': Date,
         'actualDate': Date,
         'ipClient': String,
         'token': String,
-        'profileLogin': { type: Schema.Types.ObjectId, ref: "profile" },
+        '_profileLogin': { type: Schema.Types.ObjectId, ref: "profile" },
         'providerId': String,
         'providerKey': String,
     },

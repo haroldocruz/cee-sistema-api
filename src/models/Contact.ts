@@ -1,5 +1,6 @@
+import { Document } from "mongoose";
 
-export interface IContact {
+export interface IContactBase {
     "emailList": [IEMail];
     "phoneList": [IPhone];
     "addressList": [IAddress];
@@ -26,4 +27,29 @@ export interface IAddress {
     "zipcode": number;
     "complement": string;
     "description": string;
+}
+
+export interface IContact extends IContactBase, Document { }
+
+export const Contact = {
+    "emailList": [{
+        "address": { type: String },
+        "description": { type: String }
+    }],
+    "phoneList": [{
+        "number": { type: Number },
+        "description": { type: String }
+        // "typePhone": TypePhoneEnum;
+    }],
+    "addressList": [{
+        "country": String,
+        "state": String,
+        "city": String,
+        "district": String,
+        "place": String,
+        "number": Number,
+        "zipcode": Number,
+        "complement": String,
+        "description": String,
+    }]
 }

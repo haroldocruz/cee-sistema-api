@@ -1,5 +1,5 @@
 
-export enum EvaluationStatus {
+export enum EvaluationStatusEnum {
     AGENDADO = "Agendado",
     EM_CURSO = "Em curso",
     CANCELADO = "Cancelado",
@@ -7,7 +7,7 @@ export enum EvaluationStatus {
     ARQUIVADO = "Arquivado"
 }
 
-export enum EvaluationType {
+export enum EvaluationTypeEnum {
     PREVIA = "Prévia",
     ADICIONAL = "Adicional",
     COMPLEMENTAR = "Complementar",
