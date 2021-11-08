@@ -6,8 +6,7 @@ import { IOrganSystem } from './OrganSystem';
 import { IRoute } from './Route';
 import { IUser } from './User';
 
-export interface IProfileDocument extends Document { }
-export interface IProfile {
+export interface IProfileBase {
     "status": boolean;
     "name": string;
     "_routeList": IRoute[];
@@ -17,6 +16,8 @@ export interface IProfile {
     "group": IGroup;
     "description": string;
 }
+
+export interface IProfile extends IProfileBase, Document {}
 
 export const Profile = {
     "status": { type: Boolean, default: false },

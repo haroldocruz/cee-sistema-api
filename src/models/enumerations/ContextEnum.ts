@@ -1,6 +1,8 @@
 
 export enum Context {
-    ORGAN_SYSTEM = "organ_system",
-    MAINTAINER = "maintainer",
-    MAINTAINED = "maintained"
+    SYSTEM = "system",
+    CEE = "CEE",
+    IE_UE = "IE/UE",
+    MAINTAINER = "Mantenedora",
+    MAINTAINED = "Mantida"
 }

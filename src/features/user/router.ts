@@ -39,7 +39,7 @@ function fnGetOne(itemCtrl: IUserCtrl) {
 function fnGetAll(itemCtrl: IUserCtrl) {
     return async (req: Request & IAuth, res: Response, next: NextFunction) => {
         itemCtrl.getAll(req, (resp: IUserBase) => { 
-            console.log(resp.dataAccess?.profileList)
+            console.log(resp.dataAccess?._profileList)
             res.json(resp) });
     };
 }

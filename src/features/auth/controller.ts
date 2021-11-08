@@ -52,8 +52,8 @@ function fnLogIn(User: Model<IUser>) {
         try {
             //buscar usuário no DB pelo 'email' ou 'cpf'
             const user = await User.findOne({ [key]: req.body.username })
-                .select('+dataAccess.passwordHash +dataAccess.profileList +dataAccess.profileDefault')
-                .populate("dataAccess.profileList dataAccess.profileDefault");
+                .select('+dataAccess.passwordHash')
+                .populate("dataAccess._profileList dataAccess._profileDefault");
 
                 console.log(user)
             //verificar se retornou algum usuário do DB
@@ -80,8 +80,8 @@ function fnLogIn(User: Model<IUser>) {
         if (await Crypt.compareHash(req.body.password, user.dataAccess.passwordHash)) {
 
             //verifica qual é o perfil padrão
-            // const profile = user.dataAccess.profileList.find(function (profile){ user.dataAccess.profileDefault == profile });
-            const profileLogin = user.dataAccess.profileDefault || user.dataAccess.profileList[0];
+            // const profile = user.dataAccess._profileList.find(function (profile){ user.dataAccess._profileDefault == profile });
+            const profileLogin = user.dataAccess._profileDefault || user.dataAccess._profileList[0];
 
             //pegar o ip do cliente que fez a conexão
             const ipClient = req.connection.remoteAddress || req.socket.remoteAddress;
@@ -100,7 +100,7 @@ function fnLogIn(User: Model<IUser>) {
                 'id': user._id,
                 'ipClient': await Crypt.encodeTextAES(ipClient),
                 'profileLogin': profileLogin,
-                'profileList': (user.dataAccess.profileList) ? await Crypt.encodeTextAES(JSON.stringify(user.dataAccess.profileList)) : null
+                'profileList': (user.dataAccess._profileList) ? await Crypt.encodeTextAES(JSON.stringify(user.dataAccess._profileList)) : null
             }
 
             //gerar o token
@@ -110,8 +110,9 @@ function fnLogIn(User: Model<IUser>) {
             user.loginInfo.lastDate = user.loginInfo.actualDate;
             user.loginInfo.actualDate = actualDate;
             user.loginInfo.ipClient = ipClient;
-            user.loginInfo.profileLogin = profileLogin;
+            user.loginInfo._profileLogin = profileLogin;
             user.loginInfo.token = token;
+            user.loginInfo.accessCount = +user.loginInfo.accessCount + 1;
 
             //responder cliente e guardar novas informações de login no DB
             userLoginInfoUpdate(user, callback);
@@ -122,7 +123,7 @@ function fnLogIn(User: Model<IUser>) {
     }
 
     async function userLoginInfoUpdate(user: IUser, callback: Function) {
-        User.updateOne({ '_id': user._id }, { $set: user }, {}, (error) => {
+        user.update({ $set: user }).exec((error) => {
             if (error) {
                 console.log("USER_LOGIN_ERROR: " + error);
                 callback(MSG.errLogin);
@@ -133,13 +134,24 @@ function fnLogIn(User: Model<IUser>) {
                 return;
             }
         });
+        // User.updateOne({ '_id': user._id }, { $set: user }, {}, (error) => {
+        //     if (error) {
+        //         console.log("USER_LOGIN_ERROR: " + error);
+        //         callback(MSG.errLogin);
+        //         return;
+        //     }
+        //     else {
+        //         callback(user);
+        //         return;
+        //     }
+        // });
     }
 }
 
 function fnLogOut(User: Model<IUser>) {
     return async (req: Request & IAuth, callback: Function) => {
 
-        const loginInfo = { 'loginInfo': undefined };
+        const loginInfo = { 'loginInfo.token': undefined };
         const find = { '_id': req.userId, 'loginInfo.token': req.body.token }
 
         const update = await User.updateOne(find, loginInfo);

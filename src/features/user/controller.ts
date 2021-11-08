@@ -58,7 +58,7 @@ function getAll(ItemModel: Model<IUser>) {
         console.log("\tUSER_READ_ALL\n")
 
         ItemModel.find({}, (error: any, resp: any) => { (error || !resp) ? callback(MSG.errFind) : callback(resp) })
-            .populate({ path: 'dataAccess.profileList' })
+            .populate({ path: 'dataAccess._profileList' })
             // .select('groups')
             .sort('order')
     }
@@ -110,9 +110,21 @@ function fnCounter(User: Model<IUser>) {
 }
 
 function fnAllFilter() {
-    return (reqDataFilter: any, callback: Function) => {
-        console.log("\tUSER_ALL_FILTER -> " + JSON.stringify(reqDataFilter));
-        var UserModel = require('mongoose').model('user');
+    return (req: Request & IUser, callback: Function) => {
+
+        console.log("\tUSER_ALL_FILTER -> " + JSON.stringify(req.body));
+
+        const UserModel: Model<IUser> = require('mongoose').model('user');
+
+        UserModel.find(req.body).exec((error, data: IUser[]) => {
+            console.log(data)
+            if (error)
+                callback(MSG.errConn)
+            if (data.length === 0)
+                callback(MSG.errFind)
+            else
+                callback(data);
+        });
         // var AddressModel = require('mongoose').model('address');
         // var VacancyModel = require('mongoose').model('vacancy');
         // var address = AddressModel.find({
@@ -124,68 +136,68 @@ function fnAllFilter() {
         // });
         // UserModel.find({})
         // .populate('professionalExperience')
-        UserModel.find({ "name": { "$regex": reqDataFilter.user.name, "$options": "i" } })
-            // .populate({
-            //     path: 'vacancy', model: 'vacancy', match: {
-            //         "office": { "$regex": reqDataFilter.vacancy.office, "$options": "i" }
-            //     }
-            // })
-            // .populate({
-            //     path: 'address', model: 'address', match: {
-            //         "city": { "$regex": reqDataFilter.address.city, "$options": "i" },
-            //         "uf": { "$regex": reqDataFilter.address.uf, "$options": "i" }
-            //     }
-            // })
-            .populate('professionalExperience')
-            .populate('vacancy')
-            .populate('address')
-            // .where("name", /^haroldo/i)
-            .sort("name")
-            .exec((error: any, data: any) => {
-                if (error) {
-                    console.log("ERRO: " + error);
-                    callback(MSG.errConn);
-                }
-                else if (data.length === 0)
-                    callback(MSG.errFind);
-                else {
-                    var data2: any;
-                    if (reqDataFilter.vacancy !== undefined && data[0].vacancy !== undefined) {
-                        var data2 = data;
-                        if (util.invalidField(reqDataFilter.vacancy.office))
-                            data = data2.filter((item: any) => {
-                                if (item.vacancy.office)
-                                    return (item.vacancy.office.toLowerCase().indexOf(reqDataFilter.vacancy.office.toLowerCase()) !== -1) ? true : false;
-                            });
-                        if (data.length === 0) {
-                            callback(MSG.errFind);
-                            return;
-                        }
-                    }
-                    if (reqDataFilter.address !== undefined && data[0].address !== undefined) {
-                        data2 = data;
-                        if (util.invalidField(reqDataFilter.address.city))
-                            data = data2.filter((item: any) => {
-                                if (item.address.city)
-                                    return (item.address.city.toLowerCase().indexOf(reqDataFilter.address.city.toLowerCase()) !== -1) ? true : false;
-                            });
-                        if (data.length === 0) {
-                            callback(MSG.errFind);
-                            return;
-                        }
-                        data2 = data;
-                        if (util.invalidField(reqDataFilter.address.uf))
-                            data = data2.filter((item: any) => {
-                                if (item.address.uf)
-                                    return (item.address.uf.toLowerCase().indexOf(reqDataFilter.address.uf.toLowerCase()) !== -1) ? true : false;
-                            });
-                        if (data.length === 0) {
-                            callback(MSG.errFind);
-                            return;
-                        }
-                    }
-                    callback(data);
-                }
-            });
+        // UserModel.find({ "name": { "$regex": reqDataFilter.user.name, "$options": "i" } })
+        //     // .populate({
+        //     //     path: 'vacancy', model: 'vacancy', match: {
+        //     //         "office": { "$regex": reqDataFilter.vacancy.office, "$options": "i" }
+        //     //     }
+        //     // })
+        //     // .populate({
+        //     //     path: 'address', model: 'address', match: {
+        //     //         "city": { "$regex": reqDataFilter.address.city, "$options": "i" },
+        //     //         "uf": { "$regex": reqDataFilter.address.uf, "$options": "i" }
+        //     //     }
+        //     // })
+        //     .populate('professionalExperience')
+        //     .populate('vacancy')
+        //     .populate('address')
+        //     // .where("name", /^haroldo/i)
+        //     .sort("name")
+        //     .exec((error: any, data: any) => {
+        //         if (error) {
+        //             console.log("ERRO: " + error);
+        //             callback(MSG.errConn);
+        //         }
+        //         else if (data.length === 0)
+        //             callback(MSG.errFind);
+        //         else {
+        //             var data2: any;
+        //             if (reqDataFilter.vacancy !== undefined && data[0].vacancy !== undefined) {
+        //                 var data2 = data;
+        //                 if (util.invalidField(reqDataFilter.vacancy.office))
+        //                     data = data2.filter((item: any) => {
+        //                         if (item.vacancy.office)
+        //                             return (item.vacancy.office.toLowerCase().indexOf(reqDataFilter.vacancy.office.toLowerCase()) !== -1) ? true : false;
+        //                     });
+        //                 if (data.length === 0) {
+        //                     callback(MSG.errFind);
+        //                     return;
+        //                 }
+        //             }
+        //             if (reqDataFilter.address !== undefined && data[0].address !== undefined) {
+        //                 data2 = data;
+        //                 if (util.invalidField(reqDataFilter.address.city))
+        //                     data = data2.filter((item: any) => {
+        //                         if (item.address.city)
+        //                             return (item.address.city.toLowerCase().indexOf(reqDataFilter.address.city.toLowerCase()) !== -1) ? true : false;
+        //                     });
+        //                 if (data.length === 0) {
+        //                     callback(MSG.errFind);
+        //                     return;
+        //                 }
+        //                 data2 = data;
+        //                 if (util.invalidField(reqDataFilter.address.uf))
+        //                     data = data2.filter((item: any) => {
+        //                         if (item.address.uf)
+        //                             return (item.address.uf.toLowerCase().indexOf(reqDataFilter.address.uf.toLowerCase()) !== -1) ? true : false;
+        //                     });
+        //                 if (data.length === 0) {
+        //                     callback(MSG.errFind);
+        //                     return;
+        //                 }
+        //             }
+        //             callback(data);
+        //         }
+        //     });
     };
 }
