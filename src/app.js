@@ -35,6 +35,9 @@ app.use(function (req, res, next) {
 
 // middleware that is specific to this router
 app.use(function timeLog(req, res, next) {
+
+  console.log("MIDDLEWARE: " + JSON.stringify(req.body)) //! APAGAR
+
   console.log('\nTime: ', new Date);
   next();
 });

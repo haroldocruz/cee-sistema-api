@@ -1,5 +1,5 @@
 import { Document, Model, Schema } from "mongoose";
-import { IContact } from './Contact';
+import { Contact, IContact } from './Contact';
 import { IProfile } from './Profile';
 
 export enum GenderEnum {
@@ -33,8 +33,8 @@ export enum MaritalStatusEnum {
 // }
 
 export interface IUserImage {
-    avatarUrl: string;
-    photoUrl: string;
+    avatarUrl?: string;
+    photoUrl?: string;
 }
 
 export interface ILoginInfo {
@@ -50,19 +50,17 @@ export interface ILoginInfo {
 
 export interface IDataAccess {
     "username"?: string;
-    "password": string;
-    "passwordHash": string;
-    "_profileDefault": IProfile;
+    "password"?: string;
+    "passwordHash"?: string;
+    "_profileDefault"?: IProfile;
     "_profileList"?: [IProfile];
 }
 
 export interface IUserBase {
     'status': boolean;
     "image"?: IUserImage;
-    // 'status': string;
     'name': string;
     'cpf': string;
-    // 'rg': IRg;
     'gender': string;
     'maritalStatus': string;
     'birthDate': Date;
@@ -82,39 +80,12 @@ export const User = {
         avatarUrl: { type: String },
         photoUrl: { type: String }
     },
-    // 'status': { type: String, default: "Inativo" },
     'name': { type: String },
     'cpf': { type: String },
-    // 'rg': {
-    //     'number': { type: Number },
-    //     'expeditionDate': { type: Date },
-    //     'dispatcherAgency': { type: String },
-    //     'uf': String
-    // },
     'gender': String,
     'maritalStatus': String,
     'birthDate': Date,
-    'contact': {
-        "emailList": [{
-            "address": String,
-            "description": String
-        }],
-        "phoneList": [{
-            "number": Number,
-            "description": String
-        }],
-        "addressList": [{
-            "country": String,
-            "state": String,
-            "city": String,
-            "district": String, //bairro
-            "place": String, //logradouro
-            "number": Number,
-            "zipcode": Number,
-            "complement": String,
-            "description": String
-        }]
-    },
+    'contact': Contact,
     'dataAccess': {
         'username': String,
         'password': { type: String, select: false },
@@ -136,32 +107,3 @@ export const User = {
 
     'metadata': { type: Schema.Types.ObjectId, ref: 'metadata', select: false }
 }
-
-
-// export interface IUserBase {
-//     'status': boolean;
-//     'name': string;
-//     'cpf': string;
-//     'rg': IRg;
-//     'contact': IContact;
-//     'maritalStatus': string;
-//     'gender': string;
-//     'dataAccess': {
-//         'username': string;
-//         'password': string;
-//         'passwordHash': string; //encrypted
-//         'profiles': [string]; //encrypted
-//         'profilesCrypt': string; //encrypted
-//     };
-//     'birthDate': string;
-//     'address': [IAddress];
-//     'loginInfo'?: {
-//         'lastLoginDate'?: Date;
-//         'token'?: string;
-//         'providerId'?: string;
-//         'providerKey'?: string;
-//     }
-//     'metadata': Schema.Types.ObjectId;
-//     'email': [IEMail];
-//     'phone': [IPhone];
-// }

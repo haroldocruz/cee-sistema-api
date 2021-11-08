@@ -48,7 +48,8 @@ async function createFirstProfile() {
             // "scope": {},
             // "group": {},
             "description": "The superuser is a special user account used for system administration",
-            "routeList": routeList
+            "_routeList": routeList,
+            "_userList": [],
         }, {
             "status": true,
             "name": "Administrador",
@@ -56,7 +57,8 @@ async function createFirstProfile() {
             // "scope": {},
             // "group": {},
             "description": "The Administrator is a user account used for main specifications of the system administration",
-            "routeList": routeList
+            "_routeList": routeList,
+            "_userList": [],
         }, {
             "status": true,
             "name": "Gerente",
@@ -64,7 +66,8 @@ async function createFirstProfile() {
             // "scope": {},
             // "group": {},
             "description": "O Gerente é um ...",
-            "routeList": routeList
+            "_routeList": routeList,
+            "_userList": [],
         }, {
             "status": true,
             "name": "Procurador Institucional",
@@ -72,7 +75,8 @@ async function createFirstProfile() {
             // "scope": {},
             // "group": {},
             "description": "O Procurador Institucional ...",
-            "routeList": routeList
+            "_routeList": routeList,
+            "_userList": [],
         }];
 
         await model('profile').insertMany(profileList)
@@ -101,8 +105,8 @@ async function createFirstUser() {
         "dataAccess": {
             "password": "12345678909",
             "passwordHash": await Crypt.createHash("12345678909"),
-            "profileDefault": profileList[0]._id,
-            "profileList": profileList,
+            "_profileDefault": profileList[0]._id,
+            "_profileList": profileList,
         },
     }, {
         "status": true,
@@ -119,8 +123,8 @@ async function createFirstUser() {
         "dataAccess": {
             "password": "01234567890",
             "passwordHash": await Crypt.createHash("01234567890"),
-            "profileDefault": profileList[1]._id,
-            "profileList": profileList,
+            "_profileDefault": profileList[1]._id,
+            "_profileList": profileList,
         },
     }];
 

@@ -2,20 +2,19 @@ import { Model, Document } from "mongoose";
 import { Request } from "express";
 import item from "./model";
 import * as MSG from '../../utils/messages';
-import Auth, { IAuth } from "../../authServices";
-const util = require('../../utils/util');
-// var metadata = require('../metadata/metadataCtrl')
+import { IAuth } from "../../authServices";
+import { IMessage } from "../../messages";
 
 export interface DocumentCtrl {
-    'login': (arg0: Request & IAuth, callback: any) => any;
-    // 'changeProfile': (arg0: Request & IAuth, callback: any) => any;
-    'getOne': (arg0: Request & IAuth, callback: any) => any;
-    'getAll': (arg0: Request & IAuth, callback: any) => any;
-    'save': (arg0: Request & IAuth, callback: any) => any;
-    'update': (arg0: Request & IAuth, callback: any) => any;
-    'remove': (arg0: Request & IAuth, callback: any) => any;
-    'allFilter': (arg0: Request & IAuth, callback: any) => any;
-    'counter': (arg0: Request & IAuth, callback: any) => any;
+    // 'login': (request: Request & IAuth, callback: (response: IMessage & any) => void) => any;
+    // 'changeProfile': (request: Request & IAuth, callback: any) => any;
+    'getOne': (request: Request & IAuth, callback: (response: IMessage & any) => void) => any;
+    'getAll': (request: Request & IAuth, callback: (response: IMessage & any[]) => void) => any;
+    'save': (request: Request & IAuth, callback: (response: IMessage) => void) => any;
+    'update': (request: Request & IAuth, callback: (response: IMessage) => void) => any;
+    'remove': (request: Request & IAuth, callback: (response: IMessage) => void) => any;
+    'allFilter': (request: Request & IAuth, callback: (response: IMessage & any[]) => void) => any;
+    'counter': (request: Request & IAuth, callback: (response: IMessage & number) => void) => any;
 }
 
 export default function (itemName: string, obj: {}) {
@@ -107,7 +106,7 @@ function fnCounter(User: Model<Document>) {
 
 function fnAllFilter(ItemModel: Model<Document>) {
     return (req: Request & IAuth, callback: Function) => {
-        console.log("\tGENERIC_READ_ALL\n")
+        console.log("\tGENERIC_READ_ALL_FILTER\n")
 
         console.log("req.body " + JSON.stringify(req.body))
 
