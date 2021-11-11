@@ -4,8 +4,9 @@ import { ICourse } from './Course';
 import { IEvaluationResultBase } from './EvaluationResult';
 import { ILegalActBase, LegalAct } from './LegalAct';
 import { ILegalPersonBase, LegalPerson } from './LegalPerson';
-import { IUser } from './User';
+import { IUserBase } from './User';
 import { IMetadataBase, Metadata } from './Metadata';
+import { IProfileBase } from './Profile';
 
 export interface IFundaments {
     personalProfile?: String;
@@ -40,6 +41,7 @@ export interface IInstitutionBase {
     // courseList: ICourse[];
     // memberList: IUser[];
 
+    _profileList: IProfileBase[];
     __metadata: IMetadataBase;
 }
 
@@ -63,5 +65,6 @@ export const Institution = {
     // "evaluationResultList": { type: String },
     // "courseList": { type: String },
 
+    "_profileList": [{ type: Schema.Types.ObjectId, ref: 'profile' }],
     "__metadata": Metadata
 }

@@ -1,47 +1,46 @@
-import { model, Model } from 'mongoose';
+import { model } from 'mongoose';
 import { Request } from "express";
 import { IAuth } from "../../authServices";
 import * as MSG from "../../utils/messages";
 import { IInstitution } from '../../models/Institution';
 import item from './model';
 import { IMessage } from '../../messages';
-// var metadata = require('../metadata/metadataCtrl')
 
 export interface IInstitutionCtrl {
     'getOne': (request: Request & IAuth, callback: (response: IMessage & IInstitution) => void) => any;
     'getAll': (request: Request & IAuth, callback: (response: IMessage & IInstitution[]) => void) => any;
     'save': (request: Request & IAuth, callback: (response: IMessage) => void) => any;
+    'bindingInstitutionProfile': (request: Request & IAuth, callback: (response: IMessage) => void) => any;
+    'unBindingInstitutionProfile': (request: Request & IAuth, callback: (response: IMessage) => void) => any;
     'update': (request: Request & IAuth, callback: (response: IMessage) => void) => any;
     'remove': (request: Request & IAuth, callback: (response: IMessage) => void) => any;
     'allFilter': (request: Request & IAuth, callback: (response: IMessage & IInstitution[]) => void) => any;
     'counter': (request: Request & IAuth, callback: (response: IMessage & number) => void) => any;
 }
 
-
 export default function (itemName: string) {
 
-    const ItemModel = item(itemName);
-
-    return {
+    const itemModel: IInstitutionCtrl = {
         'getOne': getOne(),
         'getAll': getAll(),
-        // 'getOne': getOne(ItemModel),
-        // 'getAll': getAll(ItemModel),
-        'save': save(ItemModel),
-        'update': update(ItemModel),
-        'remove': remove(ItemModel),
-        'allFilter': allFilter(ItemModel),
-        'counter': counter(ItemModel)
+        'save': save(),
+        'bindingInstitutionProfile': bindingInstitutionProfile(),
+        'unBindingInstitutionProfile': unBindingInstitutionProfile(),
+        'update': update(),
+        'remove': remove(),
+        'allFilter': allFilter(),
+        'counter': counter()
     }
+
+    return itemModel;
 }
 
-// function getOne(ItemModel: Model<IInstitution>) {
 function getOne() {
     return (req: Request & IAuth, callback: Function) => {
-        console.log("\tINSTITUTION_READ_ONE\n")
+        console.log("\tINSTITUTION_READ_ONE\n");
 
-        const ItemModel = model('institution');
-        ItemModel.findOne({ '_id': req.params.id }, (error: any, data: IInstitution) => {
+        const InstitutionModel = model('institution');
+        InstitutionModel.findOne({ '_id': req.params.id }, (error: any, data: IInstitution) => {
             (error || !data)
                 ? callback(MSG.errFind)
                 : callback(data)
@@ -49,13 +48,12 @@ function getOne() {
     }
 }
 
-// function getAll(ItemModel: Model<IInstitution>) {
 function getAll() {
     return (req: Request & IAuth, callback: Function) => {
-        console.log("\tINSTITUTION_READ_ALL\n")
+        console.log("\tINSTITUTION_READ_ALL\n");
 
-        const ItemModel = model('institution');
-        ItemModel.find({}, (error: any, resp: any) => {
+        const InstitutionModel = model('institution');
+        InstitutionModel.find({}, (error: any, resp: any) => {
             (error || !resp)
                 ? callback(MSG.errFind)
                 : callback(resp)
@@ -63,147 +61,105 @@ function getAll() {
     }
 }
 
-function save(ItemModel: any) {
+function save() {
     return async (req: any, callback: Function) => {
-        console.log("\tINSTITUTION_CREATE\n")
+        console.log("\tINSTITUTION_CREATE\n");
 
         const InstitutionModel = model('institution');
-        let newItem = <IInstitution> new InstitutionModel(req.body);
+        let newItem = <IInstitution>new InstitutionModel(req.body);
         if (!newItem.__metadata)
             newItem.__metadata = {}
+
         newItem.__metadata._createdBy = req.userId;
         newItem.__metadata.createdAt = new Date();
+
         await newItem.save(function (error: any) {
-            (error)
-                ? (() => { console.log("ERROR CREATE: " + error); callback(MSG.errSave) })()
-                : callback(MSG.msgSuccess)
+            if (error) {
+                console.log("ERROR CREATE: " + error);
+                callback(MSG.errSave)
+                return;
+            }
+
+            callback(MSG.msgSuccess)
         });
 
     }
 }
 
-interface IBinding {
+interface IBindingInstitutionProfile {
     institutionId: string;
-    userId: string;
+    profileId: string;
 }
 
-function bindingProfileUser(ItemModel: any) {
-    return async (req: Request & IBinding, callback: Function) => {
-        console.log("\tINSTITUTION_USER_BINDING\n")
-
-        const ProfileModel = model('institution');
-        await ProfileModel.updateOne({ _id: req.body.institutionId }, { $push: { '_userList': req.body.userId } })
-
-        const UserModel = model('user');
-        await UserModel.updateOne({ _id: req.body.userId }, { $push: { 'dataAccess._institutionList': req.body.institutionId } });
-        // (error)
-        //     ? callback(MSG.errUpd)
-        //     : 
-        callback(MSG.msgSuccess);
-
-        // if (!institutionQuery.isModified) { callback(MSG.errUpd); return }
-
-        // const UserModel = Mongoose.model('user');
-        // const userQuery = await UserModel.findByIdAndUpdate(req.userId, { 'dataAccess': { $push: { '_institutionList': req.institutionId } } });
-
-        // // if (!userQuery.isModified) { callback(MSG.errUpd); return }
-
-        // callback(MSG.msgSuccess);
-    }
-}
-
-function unbindingProfileUser(ItemModel: any) {
-    return async (req: Request & IBinding, callback: Function) => {
-        console.log("\tINSTITUTION_USER_UNBINDING\n")
-
-        const ProfileModel = model('institution');
-        await ProfileModel.updateOne({ _id: req.body.institutionId }, { $push: { '_userList': req.body.userId } })
-
-        const UserModel = model('user');
-        await UserModel.updateOne({ _id: req.body.userId }, { $push: { 'dataAccess._institutionList': req.body.institutionId } });
-    }
-}
-
-function update(ItemModel: any) {
+function bindingInstitutionProfile() {
     return async (req: Request & IAuth, callback: Function) => {
-        console.log("\tINSTITUTION_UPDATE\n")
+        console.log("\tINSTITUTION_PROFILE_BINDING\n");
+
+        const binding: IBindingInstitutionProfile = req.body;
+
+        const InstitutionModel = model('institution');
+        await InstitutionModel.updateOne({ _id: binding.institutionId }, { $push: { '_profileList': binding.profileId } })
+
+        const ProfileModel = model('profile');
+        await ProfileModel.updateOne({ _id: binding.profileId }, { $push: { '_institutionList': binding.institutionId } });
+
+        callback(MSG.msgSuccess);
+    }
+}
+
+function unBindingInstitutionProfile() {
+    return async (req: Request & IAuth, callback: Function) => {
+        console.log("\tINSTITUTION_PROFILE_UNBINDING\n");
+
+        const binding: IBindingInstitutionProfile = req.body;
+
+        const InstitutionModel = model('institution');
+        await InstitutionModel.updateOne({ _id: binding.institutionId }, { $pull: { '_profileList': binding.profileId } })
+
+        const ProfileModel = model('profile');
+        await ProfileModel.updateOne({ _id: binding.profileId }, { $pull: { '_institutionList': binding.institutionId } });
+
+        callback(MSG.msgSuccess)
+    }
+}
+
+function update() {
+    return async (req: Request & IAuth, callback: Function) => {
+        console.log("\tINSTITUTION_UPDATE\n");
+
         let institution: IInstitution = req.body;
 
-        // var UserModel = require('mongoose').model('user');
-        // var data = await UserModel.findOne({ '_id': req.userId }).select('accessLevel')
-        // var user = data._doc;
-
-        // switch (user.accessLevel) {
-        //     case "SUPERUSER":
-        //         update();
-        //         break;
-        //     case "REGISTERED":
-        //         callback(MSG.errLowLevel);
-        //         break;
-        //     default:
-        //         callback(MSG.errNoAuth);
-        // }
-
-        // async function update() {
         if (!institution.__metadata)
             institution.__metadata = {}
         institution.__metadata._modifiedBy = req.userId;
         institution.__metadata.modifiedAt = new Date();
 
-        await ItemModel.updateOne({ '_id': institution._id }, req.body, (error: any) => {
-            (error) ? callback(MSG.errUpd) : callback(MSG.msgSuccess)
-        });
+        const InstitutionModel = model('institution');
+        const query = await InstitutionModel.updateOne({ '_id': institution._id }, req.body)
 
-        // metadata.update(req.metadata, req.userId);
-        // }
+        console.log("query: ", query);
+        // callback(MSG.errUpd)
+        callback(MSG.msgSuccess)
     }
 }
 
-function remove(ItemModel: any) {
+function remove() {
     return async (req: Request & IAuth, callback: Function) => {
-        console.log("\tINSTITUTION_DELETE\n")
+        console.log("\tINSTITUTION_DELETE\n");
 
-        // var UserModel = require('mongoose').model('user');
-        // var data = await UserModel.findOne({ '_id': req.userId }).select('accessLevel')
-        // var user = data._doc;
-
-        // switch (user.accessLevel) {
-        //     case "SUPERUSER":
-        //         remove();
-        //         break;
-        //     case "REGISTERED":
-        //         callback(MSG.errLowLevel);
-        //         break;
-        //     default:
-        //         callback(MSG.errNoAuth);
-        // }
-
-        // async function remove() {
-        await ItemModel.deleteOne({ '_id': req.params.id }, function (error: any) {
+        const InstitutionModel = model('institution');
+        await InstitutionModel.deleteOne({ '_id': req.params.id }, function (error: any) {
             (error) ? callback(MSG.errRem) : callback(MSG.msgSuccess);
         });
-
-
-        // var IndicadorModel = model('indicador');
-        // IndicadorModel.deleteMany({ '_meta': req.params.id }, function (error: any) {
-        //     (error) ? console.log("INSTITUTION_D_INDICADOR_D_ERROR: " + error) : console.log("INSTITUTION_D_INDICADOR_D_OK");
-        // });
-
-        // var EquipeModel = model('equipe');
-        // EquipeModel.deleteOne({ '_meta': req.params.id }, function (error: any) {
-        //     (error) ? console.log("INSTITUTION_D_EQUIPE_D_ERROR: " + error) : console.log("INSTITUTION_D_EQUIPE_D_OK");
-        // });
-
-        // metadata.delete(req.metadata);
-        // }
     }
 }
 
-function allFilter(ItemModel: any) {
+function allFilter() {
     return async (req: any, callback: Function) => {
-        console.log("\tINSTITUTION_FILTER\n")
+        console.log("\tINSTITUTION_FILTER\n");
 
-        ItemModel.find(req.body, (error: any, data: any) => {
+        const InstitutionModel = model('institution');
+        InstitutionModel.find(req.body, (error: any, data: any) => {
             (error || !data)
                 ? callback(MSG.errConn)
                 : callback(data)
@@ -212,9 +168,11 @@ function allFilter(ItemModel: any) {
     }
 }
 
-function counter(ItemModel: any) {
+function counter() {
     return (req: Request & IAuth, callback: Function) => {
-        ItemModel.count(req.body, (error: any, data: any) => {
+
+        const InstitutionModel = model('institution');
+        InstitutionModel.count(req.body, (error: any, data: any) => {
             (error || !data) ? callback(MSG.errConn) : callback(data)
         });
     }

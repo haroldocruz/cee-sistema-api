@@ -18,6 +18,8 @@ export default function (itemName: string) {
     router.get('/:id', fnGetOne(itemCtrl));
     // router.get('/:id', Auth.isAuthorized, Auth.isPermitted(ALLOWS), fnGetOne(itemCtrl));
     router.post('/', fnSave(itemCtrl));
+    router.post('/binding-institution-profile', fnBindingInstitutionProfile(itemCtrl));
+    router.post('/un-binding-institution-profile', fnUnBindingInstitutionProfile(itemCtrl));
     // router.post('/', Auth.isAuthorized, Auth.isPermitted(ALLOWS), fnSave(itemCtrl));
     // router.post('/binding', fnBindingInstitutionUser(itemCtrl));
     router.put('/:id', Auth.isAuthorized, fnUpdate(itemCtrl));
@@ -48,11 +50,17 @@ function fnSave(itemCtrl: IInstitutionCtrl) {
     };
 }
 
-// function fnBindingInstitutionUser(itemCtrl: IInstitutionCtrl) {
-//     return (req: Request & IAuth, res: Response, next: NextFunction) => {
-//         itemCtrl.bindingInstitutionUser(req, (resp: IMessage & any) => { res.json(resp) });
-//     };
-// }
+function fnBindingInstitutionProfile(itemCtrl: IInstitutionCtrl) {
+    return (req: Request & IAuth, res: Response, next: NextFunction) => {
+        itemCtrl.bindingInstitutionProfile(req, (resp: IMessage & any) => { res.json(resp) });
+    };
+}
+
+function fnUnBindingInstitutionProfile(itemCtrl: IInstitutionCtrl) {
+    return (req: Request & IAuth, res: Response, next: NextFunction) => {
+        itemCtrl.unBindingInstitutionProfile(req, (resp: IMessage & any) => { res.json(resp) });
+    };
+}
 
 function fnUpdate(itemCtrl: IInstitutionCtrl) {
     return async (req: Request & IAuth, res: Response, next: NextFunction) => {
