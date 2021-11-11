@@ -112,6 +112,18 @@ function bindingProfileUser(ItemModel: any) {
     }
 }
 
+function unbindingProfileUser(ItemModel: any) {
+    return async (req: Request & IBinding, callback: Function) => {
+        console.log("\tINSTITUTION_USER_UNBINDING\n")
+
+        const ProfileModel = model('institution');
+        await ProfileModel.updateOne({ _id: req.body.institutionId }, { $push: { '_userList': req.body.userId } })
+
+        const UserModel = model('user');
+        await UserModel.updateOne({ _id: req.body.userId }, { $push: { 'dataAccess._institutionList': req.body.institutionId } });
+    }
+}
+
 function update(ItemModel: any) {
     return async (req: Request & IAuth, callback: Function) => {
         console.log("\tINSTITUTION_UPDATE\n")

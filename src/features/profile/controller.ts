@@ -12,6 +12,7 @@ export interface IProfileCtrl {
     'getAll': (request: Request & IAuth, callback: (response: IMessage & IProfile[]) => void) => any;
     'save': (request: Request & IAuth, callback: (response: IMessage) => void) => any;
     'bindingProfileUser': (request: Request & IAuth, callback: (response: IMessage) => void) => any;
+    'unBindingProfileUser': (request: Request & IAuth, callback: (response: IMessage) => void) => any;
     'update': (request: Request & IAuth, callback: (response: IMessage) => void) => any;
     'remove': (request: Request & IAuth, callback: (response: IMessage) => void) => any;
     'allFilter': (request: Request & IAuth, callback: (response: IMessage & IProfile[]) => void) => any;
@@ -27,7 +28,8 @@ export default function (itemName: string) {
         'getOne': getOne(ItemModel),
         'getAll': getAll(ItemModel),
         'save': save(ItemModel),
-        'bindingProfileUser': bindingProfileUser(ItemModel),
+        'bindingProfileUser': bindingProfileUser(),
+        'unBindingProfileUser': unBindingProfileUser(),
         'update': update(ItemModel),
         'remove': remove(ItemModel),
         'allFilter': allFilter(ItemModel),
@@ -78,7 +80,7 @@ interface IBinding {
     userId: string;
 }
 
-function bindingProfileUser(ItemModel: any) {
+function bindingProfileUser() {
     return async (req: Request & IBinding, callback: Function) => {
         console.log("\tPROFILE_USER_BINDING\n")
 
@@ -100,6 +102,20 @@ function bindingProfileUser(ItemModel: any) {
         // // if (!userQuery.isModified) { callback(MSG.errUpd); return }
 
         // callback(MSG.msgSuccess);
+    }
+}
+
+function unBindingProfileUser() {
+    return async (req: Request & IBinding, callback: Function) => {
+        console.log("\tPROFILE_USER_UNBINDING\n")
+
+        const ProfileModel = model('profile');
+        await ProfileModel.updateOne({ _id: req.body.profileId }, { $pull: { '_userList': req.body.userId } })
+
+        const UserModel = model('user');
+        await UserModel.updateOne({ _id: req.body.userId }, { $pull: { 'dataAccess._profileList': req.body.profileId } });
+        
+        callback(MSG.msgSuccess);
     }
 }
 

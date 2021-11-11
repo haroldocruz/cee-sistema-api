@@ -20,6 +20,7 @@ export default function (itemName: string) {
     router.post('/', fnSave(itemCtrl));
     // router.post('/', Auth.isAuthorized, Auth.isPermitted(ALLOWS), fnSave(itemCtrl));
     router.post('/binding', fnBindingProfileUser(itemCtrl));
+    router.post('/unbinding', fnUnBindingProfileUser(itemCtrl));
     router.put('/:id', Auth.isAuthorized, fnUpdate(itemCtrl));
     router.delete('/:id', Auth.isAuthorized, fnRemove(itemCtrl));
     router.post('/filter/', fnAllFilter(itemCtrl));
@@ -50,6 +51,12 @@ function fnSave(itemCtrl: IProfileCtrl) {
 function fnBindingProfileUser(itemCtrl: IProfileCtrl) {
     return (req: Request & IAuth, res: Response, next: NextFunction) => {
         itemCtrl.bindingProfileUser(req, (resp: IMessage & any) => { res.json(resp) });
+    };
+}
+
+function fnUnBindingProfileUser(itemCtrl: IProfileCtrl) {
+    return (req: Request & IAuth, res: Response, next: NextFunction) => {
+        itemCtrl.unBindingProfileUser(req, (resp: IMessage & any) => { res.json(resp) });
     };
 }
 
