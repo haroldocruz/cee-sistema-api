@@ -3,18 +3,18 @@ import { Request } from "express";
 import item from "./model";
 import * as MSG from '../../utils/messages';
 import { IAuth } from "../../authServices";
-import { IMessage } from "../../messages";
+import { IStatusMessage } from "../../messages";
 
 export interface DocumentCtrl {
     // 'login': (request: Request & IAuth, callback: (response: IMessage & any) => void) => any;
     // 'changeProfile': (request: Request & IAuth, callback: any) => any;
-    'getOne': (request: Request & IAuth, callback: (response: IMessage & any) => void) => any;
-    'getAll': (request: Request & IAuth, callback: (response: IMessage & any[]) => void) => any;
-    'save': (request: Request & IAuth, callback: (response: IMessage) => void) => any;
-    'update': (request: Request & IAuth, callback: (response: IMessage) => void) => any;
-    'remove': (request: Request & IAuth, callback: (response: IMessage) => void) => any;
-    'allFilter': (request: Request & IAuth, callback: (response: IMessage & any[]) => void) => any;
-    'counter': (request: Request & IAuth, callback: (response: IMessage & number) => void) => any;
+    'getOne': (request: Request & IAuth, callback: (response: IStatusMessage & any) => void) => any;
+    'getAll': (request: Request & IAuth, callback: (response: IStatusMessage & any[]) => void) => any;
+    'save': (request: Request & IAuth, callback: (response: IStatusMessage) => void) => any;
+    'update': (request: Request & IAuth, callback: (response: IStatusMessage) => void) => any;
+    'remove': (request: Request & IAuth, callback: (response: IStatusMessage) => void) => any;
+    'allFilter': (request: Request & IAuth, callback: (response: IStatusMessage & any[]) => void) => any;
+    'counter': (request: Request & IAuth, callback: (response: IStatusMessage & number) => void) => any;
 }
 
 export default function (itemName: string, obj: {}) {

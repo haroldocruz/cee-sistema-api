@@ -1,6 +1,6 @@
 import express, { NextFunction, Request, Response } from 'express';
 import { IAuth } from '../../authServices';
-import { IMessage } from '../../messages';
+import { IStatusMessage } from '../../messages';
 import controller from './controller';
 
 var router = express.Router();
@@ -30,48 +30,48 @@ export default function (itemName: string, obj: {}) {
 
 function fnLogin(itemCtrl: any) {
     return (req: Request & IAuth, res: Response, next: NextFunction) => {
-        itemCtrl.login(req, (resp: IMessage & any) => { res.json(resp) });
+        itemCtrl.login(req, (resp: IStatusMessage & any) => { res.json(resp) });
     };
 }
 
 function fnGetOne(itemCtrl: any) {
     return async (req: Request & IAuth, res: Response, next: NextFunction) => {
-        itemCtrl.getOne(req, (resp: IMessage & any) => { res.json(resp) });
+        itemCtrl.getOne(req, (resp: IStatusMessage & any) => { res.json(resp) });
     };
 }
 
 function fnGetAll(itemCtrl: any) {
     return async (req: Request & IAuth, res: Response, next: NextFunction) => {
-        itemCtrl.getAll(req, (resp: IMessage & any) => { res.json(resp) });
+        itemCtrl.getAll(req, (resp: IStatusMessage & any) => { res.json(resp) });
     };
 }
 
 function fnSave(itemCtrl: any) {
     return (req: Request & IAuth, res: Response, next: NextFunction) => {
-        itemCtrl.save(req, (resp: IMessage & any) => { res.json(resp) });
+        itemCtrl.save(req, (resp: IStatusMessage & any) => { res.json(resp) });
     };
 }
 
 function fnUpdate(itemCtrl: any) {
     return async (req: Request & IAuth, res: Response, next: NextFunction) => {
-        itemCtrl.update(req, (resp: IMessage & any) => { res.json(resp) });
+        itemCtrl.update(req, (resp: IStatusMessage & any) => { res.json(resp) });
     };
 }
 
 function fnRemove(itemCtrl: any) {
     return async (req: Request & IAuth, res: Response, next: NextFunction) => {
-        itemCtrl.remove(req, (resp: IMessage & any) => { res.json(resp) });
+        itemCtrl.remove(req, (resp: IStatusMessage & any) => { res.json(resp) });
     };
 }
 
 function fnAllFilter(itemCtrl: any) {
     return async (req: Request & IAuth, res: Response, next: NextFunction) => {
-        itemCtrl.allFilter(req, (resp: IMessage & any) => { res.json(resp) });
+        itemCtrl.allFilter(req, (resp: IStatusMessage & any) => { res.json(resp) });
     };
 }
 
 function fnCounter(itemCtrl: any) {
     return (req: Request & IAuth, res: Response, next: NextFunction) => {
-        itemCtrl.counter(req, (resp: IMessage & any) => { res.json(resp); });
+        itemCtrl.counter(req, (resp: IStatusMessage & any) => { res.json(resp); });
     };
 }
