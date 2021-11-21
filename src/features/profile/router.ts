@@ -6,7 +6,7 @@ var router = express.Router();
 
 import controller from './controller';
 import { IProfile } from '../../models/Profile';
-import { IMessage } from '../../messages';
+import { IStatusMessage } from '../../messages';
 
 export default function (itemName: string) {
     var itemCtrl = controller(itemName);
@@ -19,10 +19,13 @@ export default function (itemName: string) {
     // router.get('/:id', Auth.isAuthorized, Auth.isPermitted(ALLOWS), fnGetOne(itemCtrl));
     router.post('/', fnSave(itemCtrl));
     // router.post('/', Auth.isAuthorized, Auth.isPermitted(ALLOWS), fnSave(itemCtrl));
-    router.post('/binding', fnBindingProfileUser(itemCtrl));
-    router.post('/unbinding', fnUnBindingProfileUser(itemCtrl));
+    router.post('/bindingUser', fnBindingProfileUser(itemCtrl));
+    router.post('/unbindingUser', fnUnBindingProfileUser(itemCtrl));
+    router.post('/bindingInstitution', fnBindingProfileInstitution(itemCtrl));
+    router.post('/unbindingInstitution', fnUnBindingProfileInstitution(itemCtrl));
     router.put('/:id', Auth.isAuthorized, fnUpdate(itemCtrl));
-    router.delete('/:id', Auth.isAuthorized, fnRemove(itemCtrl));
+    router.delete('/:id', fnRemove(itemCtrl));
+    // router.delete('/:id', Auth.isAuthorized, fnRemove(itemCtrl));
     router.post('/filter/', fnAllFilter(itemCtrl));
     // router.post('/filter/', Auth.isAuthorized, fnAllFilter(itemCtrl));
     router.post('/counter/', fnCounter(itemCtrl));
@@ -32,54 +35,66 @@ export default function (itemName: string) {
 
 function fnGetOne(itemCtrl: IProfileCtrl) {
     return async (req: Request & IAuth, res: Response, next: NextFunction) => {
-        itemCtrl.getOne(req, (resp: IProfile & IMessage) => { res.json(resp) });
+        itemCtrl.getOne(req, (resp: IProfile & IStatusMessage) => { res.json(resp) });
     };
 }
 
 function fnGetAll(itemCtrl: IProfileCtrl) {
     return async (req: Request & IAuth, res: Response, next: NextFunction) => {
-        itemCtrl.getAll(req, (resp: IProfile[] & IMessage) => { res.json(resp) });
+        itemCtrl.getAll(req, (resp: IProfile[] & IStatusMessage) => { res.json(resp) });
     };
 }
 
 function fnSave(itemCtrl: IProfileCtrl) {
     return (req: Request & IAuth, res: Response, next: NextFunction) => {
-        itemCtrl.save(req, (resp: IMessage) => { res.json(resp) });
+        itemCtrl.save(req, (resp: IStatusMessage) => { res.json(resp) });
     };
 }
 
 function fnBindingProfileUser(itemCtrl: IProfileCtrl) {
     return (req: Request & IAuth, res: Response, next: NextFunction) => {
-        itemCtrl.bindingProfileUser(req, (resp: IMessage & any) => { res.json(resp) });
+        itemCtrl.bindingProfileUser(req, (resp: IStatusMessage & any) => { res.json(resp) });
     };
 }
 
 function fnUnBindingProfileUser(itemCtrl: IProfileCtrl) {
     return (req: Request & IAuth, res: Response, next: NextFunction) => {
-        itemCtrl.unBindingProfileUser(req, (resp: IMessage & any) => { res.json(resp) });
+        itemCtrl.unBindingProfileUser(req, (resp: IStatusMessage & any) => { res.json(resp) });
+    };
+}
+
+function fnBindingProfileInstitution(itemCtrl: IProfileCtrl) {
+    return (req: Request & IAuth, res: Response, next: NextFunction) => {
+        itemCtrl.bindingProfileInstitution(req, (resp: IStatusMessage & any) => { res.json(resp) });
+    };
+}
+
+function fnUnBindingProfileInstitution(itemCtrl: IProfileCtrl) {
+    return (req: Request & IAuth, res: Response, next: NextFunction) => {
+        itemCtrl.unBindingProfileInstitution(req, (resp: IStatusMessage & any) => { res.json(resp) });
     };
 }
 
 function fnUpdate(itemCtrl: IProfileCtrl) {
     return async (req: Request & IAuth, res: Response, next: NextFunction) => {
-        itemCtrl.update(req, (resp: IProfile & IMessage) => { res.json(resp) });
+        itemCtrl.update(req, (resp: IProfile & IStatusMessage) => { res.json(resp) });
     };
 }
 
 function fnRemove(itemCtrl: IProfileCtrl) {
     return async (req: Request & IAuth, res: Response, next: NextFunction) => {
-        itemCtrl.remove(req, (resp: IMessage) => { res.json(resp) });
+        itemCtrl.remove(req, (resp: IStatusMessage) => { res.json(resp) });
     };
 }
 
 function fnAllFilter(itemCtrl: IProfileCtrl) {
     return async (req: Request & IAuth, res: Response, next: NextFunction) => {
-        itemCtrl.allFilter(req, (resp: IProfile[] & IMessage) => { res.json(resp) });
+        itemCtrl.allFilter(req, (resp: IProfile[] & IStatusMessage) => { res.json(resp) });
     };
 }
 
 function fnCounter(itemCtrl: IProfileCtrl) {
     return (req: Request & IAuth, res: Response, next: NextFunction) => {
-        itemCtrl.counter(req, (resp: number & IMessage) => { res.json(resp); });
+        itemCtrl.counter(req, (resp: number & IStatusMessage) => { res.json(resp); });
     };
 }

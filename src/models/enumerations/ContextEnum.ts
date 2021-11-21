@@ -1,8 +1,11 @@
 
-export enum Context {
-    SYSTEM = "system",
-    CEE = "CEE",
-    IE_UE = "IE/UE",
+export enum ContextEnum {
+    UNINFORMED = "Não informado",
+    CEE = "Conselho Estadual de Educação",
+    IE_UE = "Instituição/Unidade de Ensino",
+    COMMISSION = "Comissão de Avaliação",
     MAINTAINER = "Mantenedora",
-    MAINTAINED = "Mantida"
+    MAINTAINED = "Mantida",
+    VISITOR = "Visitante",
+    SYSTEM = "Sistema",
 }
