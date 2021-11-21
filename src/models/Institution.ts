@@ -4,15 +4,16 @@ import { ICourse } from './Course';
 import { IEvaluationResultBase } from './EvaluationResult';
 import { ILegalActBase, LegalAct } from './LegalAct';
 import { ILegalPersonBase, LegalPerson } from './LegalPerson';
-import { IUserBase } from './User';
 import { IMetadataBase, Metadata } from './Metadata';
 import { IProfileBase } from './Profile';
+import { IMemberBase, Member } from './Member';
+import { ContextEnum } from './enumerations/ContextEnum';
 
 export interface IFundaments {
-    personalProfile?: String;
-    mission?: String;
-    vision?: String;
-    values?: String;
+    personalProfile?: string;
+    mission?: string;
+    vision?: string;
+    values?: string;
 }
 
 export const Fundaments = {
@@ -23,14 +24,15 @@ export const Fundaments = {
 }
 
 export interface IInstitutionBase {
+    context: string;
     status: Boolean;
-    socialReason: String;
+    socialReason: string;
     cnpj: Number;
-    name: String;
-    initials: String;
-    institutionType: String;
-    administrativeSphere: String;
-    description: String;
+    name: string;
+    initials: string;
+    institutionType: string;
+    administrativeSphere: string;
+    description: string;
     fundaments: IFundaments;
     contact: IContactBase;
 
@@ -39,7 +41,7 @@ export interface IInstitutionBase {
     evaluationResultList: IEvaluationResultBase[];
     // maintainer: IInstitutionBase;
     // courseList: ICourse[];
-    // memberList: IUser[];
+    memberList: IMemberBase[];
 
     _profileList: IProfileBase[];
     __metadata: IMetadataBase;
@@ -48,6 +50,7 @@ export interface IInstitutionBase {
 export interface IInstitution extends IInstitutionBase, Document { }
 
 export const Institution = {
+    "context": { type: String, default: ContextEnum.UNINFORMED, enum: Object.values(ContextEnum) },
     "status": { type: Boolean, default: false },
     "socialReason": { type: String },
     "cnpj": { type: Number },
@@ -64,6 +67,7 @@ export const Institution = {
     // "maintainer": { type: String },
     // "evaluationResultList": { type: String },
     // "courseList": { type: String },
+    "memberList": [Member],
 
     "_profileList": [{ type: Schema.Types.ObjectId, ref: 'profile' }],
     "__metadata": Metadata
