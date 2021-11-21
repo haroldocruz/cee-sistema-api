@@ -2,10 +2,10 @@ import { IToken } from './../../models/IToken';
 import { Model, model } from "mongoose";
 import { Request } from "express";
 import { IUser } from './../../models/User';
-import * as MSG from '../../utils/messages';
 import { IAuth } from "../../authServices";
 import Crypt from "./../../utils/security/cryptograph";
 import { Util } from "../../utils/util";
+import { msgErrConn, msgErrFind, msgErrLogin, msgErrPass, msgErrUserAbsent, msgErrUserDeactived, msgErrUsername, msgSuccess } from '../../utils/messages';
 
 export interface IAuthCtrl {
     'login': (arg0: Request & IAuth, callback: Function) => void;
@@ -47,7 +47,7 @@ function fnLogIn(User: Model<IUser>) {
         })();
 
         // se username for uma expressão inválida
-        if (key === "invalid") { callback(MSG.errUsername); return; }
+        if (key === "invalid") { callback(msgErrUsername); return; }
 
         try {
             //buscar usuário no DB pelo 'email' ou 'cpf'
@@ -55,26 +55,25 @@ function fnLogIn(User: Model<IUser>) {
                 .select('+dataAccess.passwordHash')
                 .populate("dataAccess._profileList dataAccess._profileDefault");
 
-                console.log(user)
             //verificar se retornou algum usuário do DB
-            if (!user) { callback(MSG.errUserAbsent); return; }
+            if (!user) { callback(msgErrUserAbsent); return; }
 
             //verificar se o usuário está ativo
-            if (!user.status) { callback(MSG.errUserDeactived); return; }
+            if (!user.status) { callback(msgErrUserDeactived); return; }
 
             //verificar autenticidade do usuário
             autentication(req, <IUser>user, callback);
 
         } catch (error) {
             console.log(error);
-            callback(MSG.errConn);
+            callback(msgErrConn);
         }
     }
 
     async function autentication(req: Request, user: IUser, callback: Function) {
 
         //verificar se usuário possui senha salva no DB
-        if (!user.dataAccess.passwordHash) { callback(MSG.errPass); return; }
+        if (!user.dataAccess.passwordHash) { callback(msgErrPass); return; }
 
         //verificar se a senha enviada é diferente da senha salva criptografada no DB
         if (await Crypt.compareHash(req.body.password, user.dataAccess.passwordHash)) {
@@ -117,7 +116,7 @@ function fnLogIn(User: Model<IUser>) {
             //responder cliente e guardar novas informações de login no DB
             userLoginInfoUpdate(user, callback);
         } else {
-            callback(MSG.errPass);
+            callback(msgErrPass);
             return;
         }
     }
@@ -126,7 +125,7 @@ function fnLogIn(User: Model<IUser>) {
         user.update({ $set: user }).exec((error) => {
             if (error) {
                 console.log("USER_LOGIN_ERROR: " + error);
-                callback(MSG.errLogin);
+                callback(msgErrLogin);
                 return;
             }
             else {
@@ -137,7 +136,7 @@ function fnLogIn(User: Model<IUser>) {
         // User.updateOne({ '_id': user._id }, { $set: user }, {}, (error) => {
         //     if (error) {
         //         console.log("USER_LOGIN_ERROR: " + error);
-        //         callback(MSG.errLogin);
+        //         callback(ErrLogin);
         //         return;
         //     }
         //     else {
@@ -157,11 +156,11 @@ function fnLogOut(User: Model<IUser>) {
         const update = await User.updateOne(find, loginInfo);
 
         if (update.nModified === 0) {
-            callback(MSG.errFind);
+            callback(msgErrFind);
             return;
         }
 
-        callback(MSG.msgSuccess);
+        callback(msgSuccess);
         return;
     }
 }
