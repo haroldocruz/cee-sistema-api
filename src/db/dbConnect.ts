@@ -1,15 +1,12 @@
-import mongoose, { ConnectionOptions } from "mongoose";
+import mongoose, { ConnectOptions } from "mongoose";
 import { URI } from "./environment";
 
-const connectionOptions: ConnectionOptions = {
-    'useNewUrlParser': true,
-    'useUnifiedTopology': true
-};
+const connectOptions: ConnectOptions = {};
 
 const db = mongoose.connection;
 
 db.on('error', console.error.bind(console, 'connection error:'));
 
-mongoose.connect( URI, connectionOptions);
+mongoose.connect( URI, connectOptions);
 
 export default mongoose;
