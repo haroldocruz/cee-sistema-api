@@ -1,9 +1,8 @@
 import { Model, Document } from "mongoose";
 import { Request } from "express";
 import item from "./model";
-import * as MSG from '../../utils/messages';
+import { IStatusMessage, msgErrConn, msgErrFind, msgErrRem, msgErrSave, msgErrUpd, msgSuccess } from '../../utils/messages';
 import { IAuth } from "../../authServices";
-import { IStatusMessage } from "../../messages";
 
 export interface DocumentCtrl {
     // 'login': (request: Request & IAuth, callback: (response: IMessage & any) => void) => any;
@@ -45,7 +44,7 @@ function getOne(ItemModel: Model<Document>) {
     return (req: Request & IAuth, callback: Function) => {
         console.log("\tGENERIC_READ_ONE\n")
 
-        ItemModel.findOne({ '_id': req.params.id }, (error: any, data: any) => { (error || !data) ? callback(MSG.errFind) : callback(data) })
+        ItemModel.findOne({ '_id': req.params.id }, (error: any, data: any) => { (error || !data) ? callback(msgErrFind) : callback(data) })
         // .populate({ path: '_indicator', populate: { path: '_critery' } })
     }
 }
@@ -54,7 +53,7 @@ function getAll(ItemModel: Model<Document>) {
     return (req: Request & IAuth, callback: Function) => {
         console.log("\tGENERIC_READ_ALL\n")
 
-        ItemModel.find({}, (error: any, resp: any) => { (error || !resp) ? callback(MSG.errFind) : callback(resp) })
+        ItemModel.find({}, (error: any, resp: any) => { (error || !resp) ? callback(msgErrFind) : callback(resp) })
             // .populate({ path: '_indicator', populate: { path: '_critery' } })
             // .select('order description')
             .sort('order')
@@ -66,7 +65,7 @@ function save(ItemModel: any) {
         console.log("\tGENERIC_CREATE\n")
 
         var newItem = new ItemModel(req.body);
-        await newItem.save(function (error: any) { (error) ? callback(MSG.errSave) : callback(MSG.msgSuccess) });
+        await newItem.save(function (error: any) { (error) ? callback(msgErrSave) : callback(msgSuccess) });
 
     }
 }
@@ -78,7 +77,7 @@ function update(ItemModel: Model<Document>) {
         const id = req.body._id || req.params.id;
         await ItemModel.updateOne({ '_id': id }, req.body, {}, (error: any, data: any) => {
             console.log(data);
-            (error) ? callback(MSG.errUpd) : (data.nModified) ? callback(MSG.msgSuccess) : callback(MSG.errUpd)
+            (error) ? callback(msgErrUpd) : (data.nModified) ? callback(msgSuccess) : callback(msgErrUpd)
         });
 
         // metadata.update(req.metadata, req.userId);
@@ -91,7 +90,7 @@ function remove(ItemModel: any) {
         console.log("\tGENERIC_DELETE\n")
 
         await ItemModel.deleteOne({ '_id': req.params.id }, function (error: any) {
-            (error) ? callback(MSG.errRem) : callback(MSG.msgSuccess);
+            (error) ? callback(msgErrRem) : callback(msgSuccess);
         });
     }
 }
@@ -99,7 +98,7 @@ function remove(ItemModel: any) {
 function fnCounter(User: Model<Document>) {
     return (req: Request & IAuth, callback: Function) => {
         User.countDocuments(req.body).exec((error, data) => {
-            (error || !data) ? callback(MSG.errConn) : callback(data)
+            (error || !data) ? callback(msgErrConn) : callback(data)
         });
     }
 }
@@ -110,7 +109,7 @@ function fnAllFilter(ItemModel: Model<Document>) {
 
         console.log("req.body " + JSON.stringify(req.body))
 
-        ItemModel.find(req.body, (error: any, resp: any) => { (error || !resp) ? callback(MSG.errFind) : callback(resp) })
+        ItemModel.find(req.body, (error: any, resp: any) => { (error || !resp) ? callback(msgErrFind) : callback(resp) })
             .populate({ path: '_userList' })
             // .populate({ path: '_indicator', populate: { path: '_critery' } })
             // .select('order description')
@@ -153,10 +152,10 @@ function fnAllFilter(ItemModel: Model<Document>) {
 //             .exec((error: any, data: any) => {
 //                 if (error) {
 //                     console.log("ERRO: " + error);
-//                     callback(MSG.errConn);
+//                     callback(msgErrConn);
 //                 }
 //                 else if (data.length === 0)
-//                     callback(MSG.errFind);
+//                     callback(msgErrFind);
 //                 else {
 //                     var data2: any;
 //                     if (reqDataFilter.vacancy !== undefined && data[0].vacancy !== undefined) {
@@ -167,7 +166,7 @@ function fnAllFilter(ItemModel: Model<Document>) {
 //                                     return (item.vacancy.office.toLowerCase().indexOf(reqDataFilter.vacancy.office.toLowerCase()) !== -1) ? true : false;
 //                             });
 //                         if (data.length === 0) {
-//                             callback(MSG.errFind);
+//                             callback(msgErrFind);
 //                             return;
 //                         }
 //                     }
@@ -179,7 +178,7 @@ function fnAllFilter(ItemModel: Model<Document>) {
 //                                     return (item.address.city.toLowerCase().indexOf(reqDataFilter.address.city.toLowerCase()) !== -1) ? true : false;
 //                             });
 //                         if (data.length === 0) {
-//                             callback(MSG.errFind);
+//                             callback(msgErrFind);
 //                             return;
 //                         }
 //                         data2 = data;
@@ -189,7 +188,7 @@ function fnAllFilter(ItemModel: Model<Document>) {
 //                                     return (item.address.uf.toLowerCase().indexOf(reqDataFilter.address.uf.toLowerCase()) !== -1) ? true : false;
 //                             });
 //                         if (data.length === 0) {
-//                             callback(MSG.errFind);
+//                             callback(msgErrFind);
 //                             return;
 //                         }
 //                     }

@@ -1,5 +1,5 @@
 import { IToken } from './../../models/IToken';
-import { Model, model } from "mongoose";
+import { Model, model, NativeError } from "mongoose";
 import { Request } from "express";
 import { IUser } from './../../models/User';
 import { IAuth } from "../../authServices";
@@ -26,47 +26,77 @@ export default function () {
     }
 }
 
+interface ILoginData {
+    username: string;
+    password: string;
+}
+
+interface IQueryConfig {
+    populateList: { path: string, select?: string[] }[]
+}
+
 function fnLogIn(User: Model<IUser>) {
     return async (req: Request & IAuth, callback: Function) => {
-        console.info("\tUSER_LOGIN", req.body);
+        console.info("\tUSER_LOGIN");
+
+        const loginData: ILoginData = req.body;
 
         //verificar se o username da requisição é 'email', 'cpf' ou uma expressão inválida
-        // const cpf = Util.isValidCpf(req.body.username)
-        // const email = Util.isValidEmail(req.body.username)
-        const key: string = (() => {
-            let username = req.body.username.trim();
-            if (Util.isValidCpf(username)) {
-                return "cpf";
-            }
-            else if (Util.isValidEmail(username)) {
-                return "dataAccess.email";
-            }
-            else {
-                return "invalid";
-            }
-        })();
+        // const cpf = Util.isValidCpf(loginData.username)
+        // const email = Util.isValidEmail(loginData.username)
+        const key: string = verifyUsername(loginData);
 
         // se username for uma expressão inválida
         if (key === "invalid") { callback(msgErrUsername); return; }
 
         try {
+            const config: IQueryConfig = {
+                populateList: [
+                    // { path: "dataAccess._profileList", select: ['name', 'context'] },
+                    // { path: "dataAccess._profileDefault", select: ['name', 'context'] }
+                ]
+            }
             //buscar usuário no DB pelo 'email' ou 'cpf'
-            const user = await User.findOne({ [key]: req.body.username })
-                .select('+dataAccess.passwordHash')
-                .populate("dataAccess._profileList dataAccess._profileDefault");
+            const UserModel = model('user');
+            const queryUser = UserModel.findOne({ [key]: loginData.username });
+            queryUser.select('+dataAccess.passwordHash');
+            queryUser.populate(config.populateList);
 
-            //verificar se retornou algum usuário do DB
+            const user = <IUser>await queryUser.exec();
+
             if (!user) { callback(msgErrUserAbsent); return; }
-
-            //verificar se o usuário está ativo
             if (!user.status) { callback(msgErrUserDeactived); return; }
 
+
+            // const user = await User.findOne({ [key]: loginData.username })
+            //     .select('+dataAccess.passwordHash')
+            //     .populate([{ path: "dataAccess._profileList", select: ['name', 'context'] }, { path: "dataAccess._profileDefault", select: ['name', 'context'] }]);
+
+            // //verificar se retornou algum usuário do DB
+            // if (!user) { callback(msgErrUserAbsent); return; }
+
+            // //verificar se o usuário está ativo
+            // if (!user.status) { callback(msgErrUserDeactived); return; }
+
             //verificar autenticidade do usuário
-            autentication(req, <IUser>user, callback);
+            autentication(req, user, callback);
 
         } catch (error) {
-            console.log(error);
+            console.log("ERROR ", error);
             callback(msgErrConn);
+        }
+    }
+
+    function verifyUsername(loginData: ILoginData) {
+        let username = loginData.username.trim();
+        if (Util.isValidCpf(username)) {
+            return "cpf";
+        }
+        else if (Util.isValidEmail(username)) {
+            return "dataAccess.email";
+        }
+        else {
+            return "invalid";
         }
     }
 
@@ -79,8 +109,12 @@ function fnLogIn(User: Model<IUser>) {
         if (await Crypt.compareHash(req.body.password, user.dataAccess.passwordHash)) {
 
             //verifica qual é o perfil padrão
-            // const profile = user.dataAccess._profileList.find(function (profile){ user.dataAccess._profileDefault == profile });
-            const profileLogin = user.dataAccess._profileDefault || user.dataAccess._profileList[0];
+            const bindList = user.dataAccess?.bindList;
+            const bindLogin = user.dataAccess?.bindDefault || (bindList.length > 0) ? user.dataAccess?.bindList[0] : null;
+            console.log("bindLogin", bindLogin);
+
+            // const profileList = user.dataAccess?._profileList;
+            // const profileLogin = user.dataAccess?._profileDefault || (profileList.length > 0) ? user.dataAccess?._profileList[0] : null;
 
             //pegar o ip do cliente que fez a conexão
             const ipClient = req.connection.remoteAddress || req.socket.remoteAddress;
@@ -98,8 +132,10 @@ function fnLogIn(User: Model<IUser>) {
                 'actualDate': actualDate,
                 'id': user._id,
                 'ipClient': await Crypt.encodeTextAES(ipClient),
-                'profileLogin': profileLogin,
-                'profileList': (user.dataAccess._profileList) ? await Crypt.encodeTextAES(JSON.stringify(user.dataAccess._profileList)) : null
+                'bindLogin': bindLogin,
+                'bindList': (bindList.length > 0) ? await Crypt.encodeTextAES(JSON.stringify(bindList)) : undefined
+                // 'profileLogin': bindLogin,
+                // 'profileList': (bindList.length > 0) ? await Crypt.encodeTextAES(JSON.stringify(bindList)) : undefined
             }
 
             //gerar o token
@@ -109,7 +145,8 @@ function fnLogIn(User: Model<IUser>) {
             user.loginInfo.lastDate = user.loginInfo.actualDate;
             user.loginInfo.actualDate = actualDate;
             user.loginInfo.ipClient = ipClient;
-            user.loginInfo._profileLogin = profileLogin;
+            user.loginInfo.currentBind = bindLogin;
+            // user.loginInfo._profileLogin = bindLogin;
             user.loginInfo.token = token;
             user.loginInfo.accessCount = +user.loginInfo.accessCount + 1;
 
@@ -155,7 +192,12 @@ function fnLogOut(User: Model<IUser>) {
 
         const update = await User.updateOne(find, loginInfo);
 
-        if (update.nModified === 0) {
+        //! Aguardar atualização do mongoose - algum erro no @type do updateOne.
+        //! A atualização previu mudança nos atributos, mas na prática acabou
+        //! por não aplicarem, a mudança ocorreu apenas no @type
+        const up = <any>update;
+
+        if (up.nModified === 0) {
             callback(msgErrFind);
             return;
         }
