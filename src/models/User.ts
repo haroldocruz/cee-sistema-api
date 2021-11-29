@@ -1,5 +1,6 @@
 import { Document, Model, Schema } from "mongoose";
 import { Contact, IContact } from './Contact';
+import { IMetadataBase, Metadata } from "./Metadata";
 import { IProfile } from './Profile';
 
 export enum GenderEnum {
@@ -37,23 +38,71 @@ export interface IUserImage {
     photoUrl?: string;
 }
 
+const UserImage = {
+    avatarUrl: { type: String },
+    photoUrl: { type: String }
+}
+
+export interface IBindInUser {
+    status: boolean;
+    context: string;
+    _institution: string;
+    institutionName: string;
+    _profile: string;
+    profileName: string;
+}
+
+const BindInUser = {
+    status: Boolean,
+    context: String,
+    _institution: { type: Schema.Types.ObjectId, ref: "institution" },
+    institutionName: String,
+    _profile: { type: Schema.Types.ObjectId, ref: "profile" },
+    profileName: String,
+}
+
 export interface ILoginInfo {
     'accessCount'?: Number;
     'lastDate'?: Date;
     'actualDate'?: Date;
     'ipClient'?: string;
-    "_profileLogin"?: IProfile;
+    "currentBind"?: IBindInUser;
+    // "_profileLogin"?: IProfile;
     "token"?: string;
     "providerId"?: string;
     "providerKey"?: string;
+}
+
+const LoginInfo = {
+    'accessCount': { type: Number, default: 0 },
+    'lastDate': Date,
+    'actualDate': Date,
+    'ipClient': String,
+    'token': String,
+    'currentBind': BindInUser,
+    // '_profileLogin': { type: Schema.Types.ObjectId, ref: "profile" },
+    'providerId': String,
+    'providerKey': String,
 }
 
 export interface IDataAccess {
     "username"?: string;
     "password"?: string;
     "passwordHash"?: string;
-    "_profileDefault"?: IProfile;
-    "_profileList"?: [IProfile];
+    "bindDefault"?: IBindInUser;
+    "bindList"?: IBindInUser[];
+    // "_profileDefault"?: IProfile;
+    // "_profileList"?: [IProfile];
+}
+
+const DataAccess = {
+    'username': String,
+    'password': { type: String, select: false },
+    'passwordHash': { type: String, select: false }, //encrypted
+    'bindDefault': BindInUser,
+    'bindList': [BindInUser],
+    // '_profileDefault': { type: Schema.Types.ObjectId, ref: "profile" },
+    // '_profileList': [{ type: Schema.Types.ObjectId, ref: "profile", select: false }],
 }
 
 export interface IUserBase {
@@ -68,7 +117,8 @@ export interface IUserBase {
     'dataAccess': IDataAccess;
     'loginInfo'?: ILoginInfo;
     'description': string;
-    'metadata': Schema.Types.ObjectId;
+    
+    'metadata': IMetadataBase;
 }
 
 export interface IUser extends IUserBase, Document { }
@@ -76,34 +126,16 @@ export interface IUser2 extends Model<Document> { }
 
 export const User = {
     'status': { type: Boolean, default: false },
-    "image": {
-        avatarUrl: { type: String },
-        photoUrl: { type: String }
-    },
+    "image": UserImage,
     'name': { type: String },
     'cpf': { type: String },
     'gender': String,
     'maritalStatus': String,
     'birthDate': Date,
     'contact': Contact,
-    'dataAccess': {
-        'username': String,
-        'password': { type: String, select: false },
-        'passwordHash': { type: String, select: false }, //encrypted
-        '_profileDefault': { type: Schema.Types.ObjectId, ref: "profile" },
-        '_profileList': [{ type: Schema.Types.ObjectId, ref: "profile", select: false }],
-    },
-    'loginInfo': {
-        'accessCount': { type: Number, default: 0 },
-        'lastDate': Date,
-        'actualDate': Date,
-        'ipClient': String,
-        'token': String,
-        '_profileLogin': { type: Schema.Types.ObjectId, ref: "profile" },
-        'providerId': String,
-        'providerKey': String,
-    },
+    'dataAccess': DataAccess,
+    'loginInfo': LoginInfo,
     'description': String,
 
-    'metadata': { type: Schema.Types.ObjectId, ref: 'metadata', select: false }
+    '__metadata': Metadata
 }

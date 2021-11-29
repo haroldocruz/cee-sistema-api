@@ -5,8 +5,6 @@ import { IEvaluationResultBase } from './EvaluationResult';
 import { ILegalActBase, LegalAct } from './LegalAct';
 import { ILegalPersonBase, LegalPerson } from './LegalPerson';
 import { IMetadataBase, Metadata } from './Metadata';
-import { IProfileBase } from './Profile';
-import { IMemberBase, Member } from './Member';
 import { ContextEnum } from './enumerations/ContextEnum';
 
 export interface IFundaments {
@@ -23,28 +21,46 @@ export const Fundaments = {
     values: String,
 }
 
-export interface IInstitutionBase {
+export interface IBindInInstitution {
+    status: boolean;
     context: string;
-    status: Boolean;
-    socialReason: string;
-    cnpj: Number;
-    name: string;
-    initials: string;
-    institutionType: string;
-    administrativeSphere: string;
-    description: string;
-    fundaments: IFundaments;
-    contact: IContactBase;
+    _profile: string;
+    profileName: string;
+    _user: string;
+    userName: string;
+}
 
-    legalPerson: ILegalPersonBase;
-    legalActList: ILegalActBase[];
-    evaluationResultList: IEvaluationResultBase[];
-    // maintainer: IInstitutionBase;
-    // courseList: ICourse[];
-    memberList: IMemberBase[];
+export const BindInInstitution = {
+    status: { type: Boolean, default: false },
+    context: { type: String, default: ContextEnum.UNINFORMED },
+    _profile: { type: Schema.Types.ObjectId, ref: 'profile' },
+    profileName: { type: String },
+    _user: { type: Schema.Types.ObjectId, ref: 'user' },
+    userName: { type: String },
+}
 
-    _profileList: IProfileBase[];
-    __metadata: IMetadataBase;
+export interface IInstitutionBase {
+    context?: string;
+    status?: Boolean;
+    socialReason?: string;
+    cnpj?: Number;
+    name?: string;
+    initials?: string;
+    institutionType?: string;
+    administrativeSphere?: string;
+    description?: string;
+    fundaments?: IFundaments;
+    contact?: IContactBase;
+
+    legalPerson?: ILegalPersonBase;
+    legalActList?: ILegalActBase[];
+    evaluationResultList?: IEvaluationResultBase[];
+    // maintainer?: IInstitutionBase;
+    // courseList?: ICourse[];
+    memberList?: IBindInInstitution[];
+
+    // _profileList?: IProfileBase[];
+    __metadata?: IMetadataBase;
 }
 
 export interface IInstitution extends IInstitutionBase, Document { }
@@ -67,8 +83,8 @@ export const Institution = {
     // "maintainer": { type: String },
     // "evaluationResultList": { type: String },
     // "courseList": { type: String },
-    "memberList": [Member],
+    "memberList": [BindInInstitution],
 
-    "_profileList": [{ type: Schema.Types.ObjectId, ref: 'profile' }],
+    // "_profileList": [{ type: Schema.Types.ObjectId, ref: 'profile' }],
     "__metadata": Metadata
 }

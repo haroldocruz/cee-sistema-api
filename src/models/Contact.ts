@@ -1,32 +1,32 @@
 import { Document } from "mongoose";
 
 export interface IContactBase {
-    "emailList": [IEMail];
-    "phoneList": [IPhone];
-    "addressList": [IAddress];
+    "emailList"?: [IEMail];
+    "phoneList"?: [IPhone];
+    "addressList"?: [IAddress];
 }
 
 export interface IPhone {
-    "number": number;
-    "description": string;
+    "number"?: number;
+    "description"?: string;
     // "typePhone": TypePhoneEnum;
 }
 
 export interface IEMail {
-    "address": string;
-    "description": string;
+    "address"?: string;
+    "description"?: string;
 }
 
 export interface IAddress {
-    "country": string;
-    "state": string;
-    "city": string;
-    "district": string;
-    "place": string;
-    "number": number;
-    "zipcode": number;
-    "complement": string;
-    "description": string;
+    "country"?: string;
+    "state"?: string;
+    "city"?: string;
+    "district"?: string;
+    "place"?: string;
+    "number"?: number;
+    "zipcode"?: number;
+    "complement"?: string;
+    "description"?: string;
 }
 
 export interface IContact extends IContactBase, Document { }

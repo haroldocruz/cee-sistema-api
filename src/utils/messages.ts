@@ -30,7 +30,7 @@ export const msgErrUpdVoid = { statusCode: 400, statusMessage: 'Nada foi modific
 //DELETE
 export const msgErrRem = { statusCode: 400, statusMessage: 'Erro ao tentar remover'};
 //OTHERS
-export const msgErrUnexpected = { statusCode: 403, statusMessage: 'Erro não esperado'};
+export const msgErrUnexpected = { statusCode: 503, statusMessage: 'Erro não esperado no servidor'};
 export const msgErrDenied = { statusCode: 403, statusMessage: 'Permissão negada'};
 export const msgErrNoData = { statusCode: 204, statusMessage: 'Nenhum dado enviado'};
 export const msgErrNoPermission = { statusCode: 403, statusMessage: 'Usuário não autorizado a realizar esta operação'};

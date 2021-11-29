@@ -15,7 +15,7 @@ const bcryptNodejs = require('bcrypt-nodejs');
 import { model } from "mongoose";
 
 import { IProfileCtrl } from './features/profile/controller';
-import * as MSG from "./utils/messages";
+import { msgErrDenied, msgErrNoToken, msgErrToken } from "./utils/messages";
 
 // 2^rounds iterations of processing.
 // From @garthk, on a 2GHz core you can roughly expect:
@@ -126,7 +126,7 @@ const GROUPS = [{
         "POST/user/counter",
         "POST/auth/logout"
     ]
-},{
+}, {
     'name': "SuperUser",
     'context': { name: 'CEE', identify: '' },
     'description': "Uma descrição aqui",
@@ -144,21 +144,21 @@ const GROUPS = [{
 
 function guard() {
 
-    const _middleware =  function _middleware(req: Request & IAuth, res: Response, next: NextFunction): void {
+    const _middleware = function _middleware(req: Request & IAuth, res: Response, next: NextFunction): void {
         console.log(req.method + req.baseUrl + req.route.path)
         const routeActual = req.method + req.baseUrl + req.route.path
 
-        console.log("GROUPS",req.tokenData.groups)
+        console.log("GROUPS", req.tokenData.groups)
         const groupList = JSON.parse(Crypt.decodeTextAES(req.tokenData.groups));
         console.log(groupList)
         const group = groupList[req.tokenData.group];
-        
+
         // const groups = await Crypt.decodeTextAES(req.tokenData.groups);
         // const groups = req.body.groups;
 
         // required.includes(groups) ? next() : res.status(403).json([false, 'Permission denied'])
         // ROTAS[routeActual]?.groups?.includes(groups) ? next() : res.status(403).json([false, 'Permission denied'])
-        GROUPS.find((e) => e.name === group )?.routes?.includes(routeActual) ? next() : res.status(403).json(MSG.errDenied)
+        GROUPS.find((e) => e.name === group)?.routes?.includes(routeActual) ? next() : res.status(403).json(msgErrDenied)
     }
 
     //Conditionally skip a middleware when a condition is met.
@@ -174,17 +174,17 @@ function isAuthorized(req: Request & IAuth, res: Response, next: NextFunction): 
     const token = req.body.token || req.query.token || req.params.token || req.headers['authorization'] || req.headers['x-access-token'];
 
     if (!token || token == undefined || token == "") {
-        res.status(401).send(MSG.errNoToken);
+        res.status(401).send(msgErrNoToken);
     } else {
-        jwt.verify(token, process.env.SALT_KEY, async function (error: any, decoded: {data: ITokenData}) {
+        jwt.verify(token, process.env.SALT_KEY, async function (error: any, decoded: { data: ITokenData }) {
             if (error) {
                 console.log("TOKEN_ERROR: " + error)
-                res.status(400).send(MSG.errToken);
+                res.status(400).send(msgErrToken);
             } else {
                 const ipClient = req.connection.remoteAddress || req.socket.remoteAddress;
                 console.log(decoded)
-                if ( await Crypt.decodeTextAES(decoded.data.ipClient) != ipClient)
-                    res.status(409).send(MSG.errToken)
+                if (await Crypt.decodeTextAES(decoded.data.ipClient) != ipClient)
+                    res.status(409).send(msgErrToken)
                 console.log("UserId: " + JSON.stringify(decoded.data.id), ipClient)
                 req.userId = decoded.data.id;
                 req.tokenData = decoded.data;

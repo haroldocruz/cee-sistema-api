@@ -1,19 +1,26 @@
 import { model } from "mongoose";
 import Crypt from "./utils/security/cryptograph";
 import Moment from "moment";
+import { ContextEnum } from "./models/enumerations/ContextEnum";
+import { IBindInInstitution, IInstitutionBase } from "./models/Institution";
+import { InstitutionTypeEnum } from "./models/enumerations/InstitutionTypeEnum";
+import { AdministrativeSphereEnum } from "./models/enumerations/administrativeSphereEnum";
+import { IMemberBase as IMemberBind } from "./models/Member";
+import { IBindInUser } from "./models/User";
 
 module.exports = async function (app) {
 
-    if (!await model('user').exists()) {
+    if (!await model('user').exists({})) {
         await createRouteList();
         await createFirstProfile();
         await createFirstUser();
+        await createFirstInstitution();
     }
 }
 
 async function createRouteList() {
-    
-    if (await model('route').exists()) await model('route').remove();
+
+    if (await model('route').exists({})) await model('route').remove();
 
     const routeList = [
         { "context": "system", "status": true, "urn": "GET/user/", "description": "" },
@@ -26,25 +33,20 @@ async function createRouteList() {
         { "context": "system", "status": true, "urn": "POST/auth/logout", "description": "" }
     ]
 
-    await model('route').insertMany(routeList)
-
-    // routeList.forEach(element => {
-    //     await model('route').create(element);
-    // });
+    await model('route').insertMany(routeList);
 }
 
 async function createFirstProfile() {
-    
-    if (await model('profile').exists()) await model('route').remove();
+
+    if (await model('profile').exists({})) await model('profile').remove();
 
     const routeList = await model('route').find();
-    console.log(routeList)
 
     const profileList = [
         {
             "status": true,
             "name": "Super Usuário",
-            "context": "system",
+            "context": ContextEnum.SYSTEM,
             // "scope": {},
             // "group": {},
             "description": "The superuser is a special user account used for system administration",
@@ -53,7 +55,7 @@ async function createFirstProfile() {
         }, {
             "status": true,
             "name": "Administrador",
-            "context": "cee",
+            "context": ContextEnum.CEE,
             // "scope": {},
             // "group": {},
             "description": "The Administrator is a user account used for main specifications of the system administration",
@@ -62,7 +64,7 @@ async function createFirstProfile() {
         }, {
             "status": true,
             "name": "Gerente",
-            "context": "cee",
+            "context": ContextEnum.CEE,
             // "scope": {},
             // "group": {},
             "description": "O Gerente é um ...",
@@ -71,7 +73,7 @@ async function createFirstProfile() {
         }, {
             "status": true,
             "name": "Procurador Institucional",
-            "context": "ie/ue",
+            "context": ContextEnum.IE_UE,
             // "scope": {},
             // "group": {},
             "description": "O Procurador Institucional ...",
@@ -79,16 +81,14 @@ async function createFirstProfile() {
             "_userList": [],
         }];
 
-        await model('profile').insertMany(profileList)
-
-    // for (let i = 0; i < profiles.length; i++)
-    //     await model('profile').create(profileList[i]);
+    await model('profile').insertMany(profileList);
 }
 
 async function createFirstUser() {
 
+    if (await model('user').exists({})) await model('user').remove();
+
     const profileList = await model('profile').find();
-    console.log(profileList)
 
     const userList = [{
         "status": true,
@@ -105,8 +105,10 @@ async function createFirstUser() {
         "dataAccess": {
             "password": "12345678909",
             "passwordHash": await Crypt.createHash("12345678909"),
-            "_profileDefault": profileList[0]._id,
-            "_profileList": profileList,
+            "bindDefault": undefined,
+            "bindList": undefined,
+            // "_profileDefault": profileList[0]._id,
+            // "_profileList": profileList,
         },
     }, {
         "status": true,
@@ -123,18 +125,71 @@ async function createFirstUser() {
         "dataAccess": {
             "password": "01234567890",
             "passwordHash": await Crypt.createHash("01234567890"),
-            "_profileDefault": profileList[1]._id,
-            "_profileList": profileList,
+            "bindDefault": undefined,
+            "bindList": undefined,
+            // "_profileDefault": profileList[1]._id,
+            // "_profileList": profileList,
         },
     }];
 
-    await model('user').insertMany(userList, function (error, docs) {
-        if (error) console.log("USERS ERRORRRRR"+error) //! APAGAR
-        else console.log("USERS INSERTED SUCCESSFUL") //! APAGAR
-     });
+    await model('user').insertMany(userList);
+}
 
-    //  await model('profile').updateMany({}, {_userList: })
+async function createFirstInstitution() {
 
-    // const userModel = new model('user');
-    // userModel(user).save();
+    if (await model('institution').exists({})) await model('institution').remove();
+
+    const queryProfile = await model('profile').findOne({ context: ContextEnum.CEE });
+    const queryUser = await model('user').findOne({ "name": "Administrador CEE" });
+
+    const institution: IInstitutionBase = {
+        "status": true,
+        "context": ContextEnum.CEE,
+        institutionType: InstitutionTypeEnum.PUBLIC_ADM,
+        administrativeSphere: AdministrativeSphereEnum.PUBLIC_E,
+        "name": "Conselho Estadual de Educação do Tocantins",
+        "contact": {
+            "emailList": [{ "address": "conseduc@seduc.to.gov.br" }],
+            "phoneList": [{ "number": 556332186221, "description": "Geral" }],
+            "addressList": [{ "country": "Brasil", "state": "Tocantins", "zipcode": 77000000 }]
+        },
+        // memberList: [{
+        //     status: true,
+        //     _profile: queryProfile._id,
+        //     _user: queryUser._id
+        // }]
+    };
+
+
+    const queryInstitution = await model('institution').create(institution);
+
+    const updateUser: IMemberBind = {
+        status: true,
+        context: ContextEnum.CEE,
+        _user: queryUser.get('_id'),
+        userName: queryUser.get('name'),
+        _institution: queryInstitution.get('_id'),
+        institutionName: queryInstitution.get('name'),
+        _profile: queryProfile.get('_id'),
+        profileName: queryProfile.get('name'),
+    }
+
+    bindingMember(updateUser)
+
+    // await queryUser.updateOne({ $push: { "dataAccess.bindList": [updateUser] } }).exec();
+}
+
+async function bindingMember(update: IMemberBind) {
+    console.log("\tINSTITUTION_MEMBER_BINDING2\n");
+
+    const reqBindingMember: IMemberBind = update;
+    const bindInInstitution: IBindInInstitution = reqBindingMember;
+    const bindInUser: IBindInUser = reqBindingMember;
+
+    const InstitutionModel = model('institution');
+    await InstitutionModel.updateOne({ _id: reqBindingMember._institution }, { $push: { 'memberList': [bindInInstitution] } })
+
+    const UserModel = model('user');
+    await UserModel.updateOne({ _id: reqBindingMember._user }, { $push: { 'dataAccess.bindList': [bindInUser] } });
+    
 }
