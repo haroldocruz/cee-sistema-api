@@ -17,7 +17,8 @@ export default function (itemName: string) {
     router.post('/', fnSave(itemCtrl));
     router.put('/:id', fnUpdate(itemCtrl));
     router.delete('/:id', fnRemove(itemCtrl));
-    router.post('/filter/', fnAllFilter(itemCtrl));
+    router.post('/filterOne/', fnFilterOne(itemCtrl));
+    router.post('/filterAll/', fnFilterAll(itemCtrl));
     router.post('/counter/', fnCounter(itemCtrl));
     // router.get('/', Auth.isAuthorized, Auth.guard(), fnGetAll(itemCtrl));
     // router.get('/:id', Auth.isAuthorized, Auth.guard(), fnGetOne(itemCtrl));
@@ -38,9 +39,7 @@ function fnGetOne(itemCtrl: IUserCtrl) {
 
 function fnGetAll(itemCtrl: IUserCtrl) {
     return async (req: Request & IAuth, res: Response, next: NextFunction) => {
-        itemCtrl.getAll(req, (resp: IUserBase) => { 
-            console.log(resp.dataAccess?._profileList)
-            res.json(resp) });
+        itemCtrl.getAll(req, (resp: IUserBase) => { res.json(resp) });
     };
 }
 
@@ -62,9 +61,15 @@ function fnRemove(itemCtrl: IUserCtrl) {
     };
 }
 
-function fnAllFilter(itemCtrl: IUserCtrl) {
+function fnFilterOne(itemCtrl: IUserCtrl) {
     return async (req: Request & IAuth, res: Response, next: NextFunction) => {
-        itemCtrl.allFilter(req, (resp: IUserBase) => { res.json(resp) });
+        itemCtrl.filterOne(req, (resp: IUserBase) => { res.json(resp) });
+    };
+}
+
+function fnFilterAll(itemCtrl: IUserCtrl) {
+    return async (req: Request & IAuth, res: Response, next: NextFunction) => {
+        itemCtrl.filterAll(req, (resp: IUserBase) => { res.json(resp) });
     };
 }
 

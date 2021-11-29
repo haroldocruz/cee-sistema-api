@@ -1,12 +1,10 @@
-import { Model, Document, CastError } from "mongoose";
-import { DeleteWriteOpResultObject } from "mongodb";
+import { Model, CastError, model } from "mongoose";
 import { Request } from "express";
-import { IUser } from './../../models/User';
+import { IUser, IUserBase } from './../../models/User';
 import item from "./model";
-import * as MSG from '../../utils/messages';
+import { msgErrConn, msgErrFind, msgErrRem, msgErrSave, msgErrUnexpected, msgErrUpd, msgErrUpdVoid, msgSuccess } from '../../utils/messages';
 import { IAuth } from "../../authServices";
-const util = require('../../utils/util');
-// var metadata = require('../metadata/metadataCtrl')
+import { IQueryConfig } from "../../models/IQueryConfig";
 
 export interface IUserCtrl {
     // 'changeProfile': (arg0: Request & IAuth, callback: any) => any;
@@ -15,7 +13,8 @@ export interface IUserCtrl {
     'save': (arg0: Request & IAuth, callback: any) => any;
     'update': (arg0: Request & IAuth, callback: any) => any;
     'remove': (arg0: Request & IAuth, callback: any) => any;
-    'allFilter': (arg0: Request & IAuth, callback: any) => any;
+    'filterOne': (arg0: Request & IAuth, callback: any) => any;
+    'filterAll': (arg0: Request & IAuth, callback: any) => any;
     'counter': (arg0: Request & IAuth, callback: any) => any;
 }
 
@@ -30,7 +29,8 @@ export default function (itemName: string) {
         'save': save(ItemModel),
         'update': update(ItemModel),
         'remove': remove(ItemModel),
-        'allFilter': fnAllFilter(),
+        'filterOne': filterOne(),
+        'filterAll': filterAll(),
         'counter': fnCounter(ItemModel)
     }
 }
@@ -48,7 +48,7 @@ function getOne(ItemModel: Model<IUser>) {
     return (req: Request & IAuth, callback: Function) => {
         console.log("\tUSER_READ_ONE\n")
 
-        ItemModel.findOne({ '_id': req.params.id }, (error: any, data: any) => { (error || !data) ? callback(MSG.errFind) : callback(data) })
+        ItemModel.findOne({ '_id': req.params.id }, (error: any, data: any) => { (error || !data) ? callback(msgErrFind) : callback(data) })
         // .populate({ path: '_indicator', populate: { path: '_critery' } })
     }
 }
@@ -57,7 +57,7 @@ function getAll(ItemModel: Model<IUser>) {
     return (req: Request & IAuth, callback: Function) => {
         console.log("\tUSER_READ_ALL\n")
 
-        ItemModel.find({}, (error: any, resp: any) => { (error || !resp) ? callback(MSG.errFind) : callback(resp) })
+        ItemModel.find({}, (error: any, resp: any) => { (error || !resp) ? callback(msgErrFind) : callback(resp) })
             .populate({ path: 'dataAccess._profileList' })
             // .select('groups')
             .sort('order')
@@ -70,7 +70,7 @@ function save(ItemModel: Model<IUser>) {
 
         var newItem = new ItemModel(req.body);
         await newItem.save(function (error: CastError) {
-            (error) ? (() => { callback(MSG.errSave); console.log(error) })() : callback(MSG.msgSuccess)
+            (error) ? (() => { callback(msgErrSave); console.log(error) })() : callback(msgSuccess)
         });
 
     }
@@ -82,8 +82,8 @@ function update(ItemModel: Model<IUser>) {
 
         const id = req.body._id || req.params.id;
         await ItemModel.updateOne({ '_id': id }, req.body, {}, (error: any, data: any) => {
-            // console.log(data);
-            (error) ? (() => { callback(MSG.errUpd); console.log(error) })() : (data.nModified) ? callback(MSG.msgSuccess) : callback(MSG.errUpdVoid)
+            console.log(data);
+            (error) ? (() => { callback(msgErrUpd); console.log(error) })() : (data.nModified) ? callback(msgSuccess) : callback(msgErrUpdVoid)
         });
 
         // metadata.update(req.metadata, req.userId);
@@ -95,8 +95,8 @@ function remove(ItemModel: any) {
     return async (req: Request & IAuth, callback: Function) => {
         console.log("\tUSER_DELETE\n")
 
-        await ItemModel.deleteOne({ '_id': req.params.id }, function (error: any, data: DeleteWriteOpResultObject) {
-            (error) ? callback(MSG.errRem) : (data.deletedCount == 0) ? callback(MSG.errFind) : callback(MSG.msgSuccess);
+        await ItemModel.deleteOne({ '_id': req.params.id }, function (error: any, data) {
+            (error) ? callback(msgErrRem) : (data.deletedCount == 0) ? callback(msgErrFind) : callback(msgSuccess);
         });
     }
 }
@@ -104,27 +104,60 @@ function remove(ItemModel: any) {
 function fnCounter(User: Model<IUser>) {
     return (req: Request & IAuth, callback: Function) => {
         User.countDocuments(req.body).exec((error, data) => {
-            (error || !!data) ? console.log(MSG.errConn) : callback(data)
+            (error || !!data) ? console.log(msgErrConn) : callback(data)
         });
     }
 }
 
-function fnAllFilter() {
-    return (req: Request & IUser, callback: Function) => {
+function filterOne() {
+    return async (req: Request & IUser, callback: Function) => {
+        console.log("\tUSER_FILTER_ONE");
 
-        console.log("\tUSER_ALL_FILTER -> " + JSON.stringify(req.body));
+        const user: IUserBase = req.body.filter;
+        const config: IQueryConfig = req.body.queryConfig;
 
-        const UserModel: Model<IUser> = require('mongoose').model('user');
+        const UserModel = model('user');
+        const query = UserModel.findOne(user);
 
-        UserModel.find(req.body).exec((error, data: IUser[]) => {
-            console.log(data)
-            if (error)
-                callback(MSG.errConn)
-            if (data.length === 0)
-                callback(MSG.errFind)
-            else
-                callback(data);
-        });
+        config.populateList.forEach((e) => {
+            query.populate({ path: e.path, select: e.select })
+        })
+
+        try {
+            const data = <IUser>await query.exec();
+            if (!data) { callback(msgErrFind); return; }
+            callback(data);
+        }
+        catch (error) {
+            console.log("ERROR: ", error);
+            callback(msgErrUnexpected);
+        }
+    }
+}
+
+function filterAll() {
+    return async (req: Request & IUser, callback: Function) => {
+        console.log("\tUSER_FILTER_ALL");
+
+        const user: IUserBase = req.body.filter;
+        const config: IQueryConfig = req.body.queryConfig;
+
+        const UserModel = model('user');
+        const query = UserModel.find(user);
+
+        config.populateList.forEach((e) => {
+            query.populate({ path: e.path, select: e.select })
+        })
+
+        try {
+            const data = <IUser[]>await query.exec();
+            if (data.length === 0) { callback(msgErrFind); return; }
+            callback(data);
+        }
+        catch (error) {
+            console.log("ERROR: ", error);
+            callback(msgErrUnexpected);
+        }
         // var AddressModel = require('mongoose').model('address');
         // var VacancyModel = require('mongoose').model('vacancy');
         // var address = AddressModel.find({
@@ -156,10 +189,10 @@ function fnAllFilter() {
         //     .exec((error: any, data: any) => {
         //         if (error) {
         //             console.log("ERRO: " + error);
-        //             callback(MSG.errConn);
+        //             callback(msgErrConn);
         //         }
         //         else if (data.length === 0)
-        //             callback(MSG.errFind);
+        //             callback(msgErrFind);
         //         else {
         //             var data2: any;
         //             if (reqDataFilter.vacancy !== undefined && data[0].vacancy !== undefined) {
@@ -170,7 +203,7 @@ function fnAllFilter() {
         //                             return (item.vacancy.office.toLowerCase().indexOf(reqDataFilter.vacancy.office.toLowerCase()) !== -1) ? true : false;
         //                     });
         //                 if (data.length === 0) {
-        //                     callback(MSG.errFind);
+        //                     callback(msgErrFind);
         //                     return;
         //                 }
         //             }
@@ -182,7 +215,7 @@ function fnAllFilter() {
         //                             return (item.address.city.toLowerCase().indexOf(reqDataFilter.address.city.toLowerCase()) !== -1) ? true : false;
         //                     });
         //                 if (data.length === 0) {
-        //                     callback(MSG.errFind);
+        //                     callback(msgErrFind);
         //                     return;
         //                 }
         //                 data2 = data;
@@ -192,7 +225,7 @@ function fnAllFilter() {
         //                             return (item.address.uf.toLowerCase().indexOf(reqDataFilter.address.uf.toLowerCase()) !== -1) ? true : false;
         //                     });
         //                 if (data.length === 0) {
-        //                     callback(MSG.errFind);
+        //                     callback(msgErrFind);
         //                     return;
         //                 }
         //             }

@@ -18,14 +18,15 @@ export default function (itemName: string) {
     router.get('/:id', fnGetOne(itemCtrl));
     // router.get('/:id', Auth.isAuthorized, Auth.isPermitted(ALLOWS), fnGetOne(itemCtrl));
     router.post('/', fnSave(itemCtrl));
-    router.post('/binding-member', fnBindingMember(itemCtrl));
-    router.post('/unbinding-member', fnUnbindingMember(itemCtrl));
+    router.post('/bindMember', fnBindMember(itemCtrl));
+    router.post('/unbindMember', fnUnbindMember(itemCtrl));
     // router.post('/', Auth.isAuthorized, Auth.isPermitted(ALLOWS), fnSave(itemCtrl));
-    // router.post('/binding', fnBindingInstitutionUser(itemCtrl));
+    // router.post('/bind', fnBindInstitutionUser(itemCtrl));
     router.put('/:id', Auth.isAuthorized, fnUpdate(itemCtrl));
     // router.put('/:id', fnUpdate(itemCtrl));
     router.delete('/:id', Auth.isAuthorized, fnRemove(itemCtrl));
-    router.post('/filter/', fnAllFilter(itemCtrl));
+    // router.post('/filterOne/', fnFilterOne(itemCtrl));
+    router.post('/filterAll/', fnFilterAll(itemCtrl));
     // router.post('/filter/', Auth.isAuthorized, fnAllFilter(itemCtrl));
     router.post('/counter/', fnCounter(itemCtrl));
 
@@ -50,15 +51,15 @@ function fnSave(itemCtrl: IInstitutionCtrl) {
     };
 }
 
-function fnBindingMember(itemCtrl: IInstitutionCtrl) {
+function fnBindMember(itemCtrl: IInstitutionCtrl) {
     return (req: Request & IAuth, res: Response, next: NextFunction) => {
-        itemCtrl.bindingMember(req, (resp: IStatusMessage & any) => { res.json(resp) });
+        itemCtrl.bindMember(req, (resp: IStatusMessage & any) => { res.json(resp) });
     };
 }
 
-function fnUnbindingMember(itemCtrl: IInstitutionCtrl) {
+function fnUnbindMember(itemCtrl: IInstitutionCtrl) {
     return (req: Request & IAuth, res: Response, next: NextFunction) => {
-        itemCtrl.unbindingMember(req, (resp: IStatusMessage & any) => { res.json(resp) });
+        itemCtrl.unbindMember(req, (resp: IStatusMessage & any) => { res.json(resp) });
     };
 }
 
@@ -74,9 +75,9 @@ function fnRemove(itemCtrl: IInstitutionCtrl) {
     };
 }
 
-function fnAllFilter(itemCtrl: IInstitutionCtrl) {
+function fnFilterAll(itemCtrl: IInstitutionCtrl) {
     return async (req: Request & IAuth, res: Response, next: NextFunction) => {
-        itemCtrl.allFilter(req, (resp: IInstitution[] & IStatusMessage) => { res.json(resp) });
+        itemCtrl.filterAll(req, (resp: IInstitution[] & IStatusMessage) => { res.json(resp) });
     };
 }
 

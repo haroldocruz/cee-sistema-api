@@ -3,8 +3,7 @@ import { Request } from "express";
 import { IInstrument } from './IInstrument';
 import item from "./model";
 import { IAuth } from "../../authServices";
-import * as MSG from "../../utils/messages";
-// var metadata = require('../metadata/metadataCtrl')
+import { msgErrConn, msgErrFind, msgErrRem, msgErrSave, msgErrUpd, msgSuccess } from "../../utils/messages";
 
 export interface IInstrumentCtrl {
     'getOne': (arg0: Request & IAuth, callback: any) => any;
@@ -36,7 +35,7 @@ function getOne(ItemModel: Model<IInstrument>) {
     return (req: Request & IAuth, callback: Function) => {
         console.log("\tINSTRUMENT_READ_ONE\n")
 
-        ItemModel.findOne({ '_id': req.params.id }, (error: any, data: any) => { (error || !data) ? callback(MSG.errFind) : callback(data) })
+        ItemModel.findOne({ '_id': req.params.id }, (error: any, data: any) => { (error || !data) ? callback(msgErrFind) : callback(data) })
             // .populate({ path: '_indicator', populate: { path: '_critery' } })
     }
 }
@@ -45,7 +44,7 @@ function getAll(ItemModel: Model<IInstrument>) {
     return (req: Request & IAuth, callback: Function) => {
         console.log("\tINSTRUMENT_READ_ALL\n")
 
-        ItemModel.find({}, (error: any, resp: any) => { (error || !resp) ? callback(MSG.errFind) : callback(resp) })
+        ItemModel.find({}, (error: any, resp: any) => { (error || !resp) ? callback(msgErrFind) : callback(resp) })
             // .populate({ path: '_indicator', populate: { path: '_critery' } })
             .select('order description')
             .sort('order')
@@ -67,15 +66,15 @@ function save(ItemModel: any) {
         //         break;
         //     // case "EDITOR", "MANAGER", "REGISTERED":
         //     case "REGISTERED":
-        //         callback(MSG.errConn);
+        //         callback(msgErrConn);
         //         break;
         //     default:
-        //         callback(MSG.errNoAuth);
+        //         callback(msgErrNoAuth);
         // }
 
         // async function create() {
         var newItem = new ItemModel(req.body);
-        await newItem.save(function (error: any) { (error) ? callback(MSG.errSave) : callback(MSG.msgSuccess) });
+        await newItem.save(function (error: any) { (error) ? callback(msgErrSave) : callback(msgSuccess) });
 
         // metadata.create(req.userId, newItem._id, "instrument");
         // }
@@ -95,15 +94,15 @@ function update(ItemModel: any) {
         //         update();
         //         break;
         //     case "REGISTERED":
-        //         callback(MSG.errLowLevel);
+        //         callback(msgErrLowLevel);
         //         break;
         //     default:
-        //         callback(MSG.errNoAuth);
+        //         callback(msgErrNoAuth);
         // }
 
         // async function update() {
         await ItemModel.updateOne({ '_id': req.body._id }, req.body, (error: any) => {
-            (error) ? callback(MSG.errUpd) : callback(MSG.msgSuccess)
+            (error) ? callback(msgErrUpd) : callback(msgSuccess)
         });
 
         // metadata.update(req.metadata, req.userId);
@@ -124,15 +123,15 @@ function remove(ItemModel: any) {
         //         remove();
         //         break;
         //     case "REGISTERED":
-        //         callback(MSG.errLowLevel);
+        //         callback(msgErrLowLevel);
         //         break;
         //     default:
-        //         callback(MSG.errNoAuth);
+        //         callback(msgErrNoAuth);
         // }
 
         // async function remove() {
         await ItemModel.deleteOne({ '_id': req.params.id }, function (error: any) {
-            (error) ? callback(MSG.errRem) : callback(MSG.msgSuccess);
+            (error) ? callback(msgErrRem) : callback(msgSuccess);
         });
 
 
@@ -165,14 +164,14 @@ function allFilter(ItemModel: any) {
         //         allFilter();
         //         break;
         //     case "REGISTERED":
-        //         callback(MSG.errNoPermission)
+        //         callback(msgErrNoPermission)
         //         break;
         //     default:
-        //         callback(MSG.errNoAuth)
+        //         callback(msgErrNoAuth)
         // }
 
         // function allFilter() {
-        ItemModel.find(req.body, (error: any, data: any) => { (error || !data) ? callback(MSG.errConn) : callback(data) })
+        ItemModel.find(req.body, (error: any, data: any) => { (error || !data) ? callback(msgErrConn) : callback(data) })
             .populate({ path: '_indicador' })
             .sort('order');
         // }
@@ -182,7 +181,7 @@ function allFilter(ItemModel: any) {
 function counter(ItemModel: any) {
     return (req: Request & IAuth, callback: Function) => {
         ItemModel.count(req.body, (error: any, data: any) => {
-            (error || !data) ? callback(MSG.errConn) : callback(data)
+            (error || !data) ? callback(msgErrConn) : callback(data)
         });
     }
 }

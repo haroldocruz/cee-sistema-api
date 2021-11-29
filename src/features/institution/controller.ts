@@ -2,18 +2,22 @@ import { model, NativeError } from 'mongoose';
 import { Request } from "express";
 import { IAuth } from "../../authServices";
 import { IStatusMessage, msgErr5xx, msgErrConn, msgErrFind, msgErrRem, msgErrSave, msgErrUnexpected, msgSuccess } from "../../utils/messages";
-import { IInstitution } from '../../models/Institution';
+import { IInstitution, IInstitutionBase } from '../../models/Institution';
 import item from './model';
+import { IProfile } from '../../models/Profile';
+import { IUser } from '../../models/User';
+import { IQueryConfig } from '../../models/IQueryConfig';
 
 export interface IInstitutionCtrl {
     'getOne'?: (request: Request & IAuth, callback: (response: IStatusMessage & IInstitution) => void) => any;
     'getAll'?: (request: Request & IAuth, callback: (response: IStatusMessage & IInstitution[]) => void) => any;
     'save'?: (request: Request & IAuth, callback: (response: IStatusMessage) => void) => any;
-    'bindingMember'?: (request: Request & IAuth, callback: (response: IStatusMessage) => void) => any;
-    'unbindingMember'?: (request: Request & IAuth, callback: (response: IStatusMessage) => void) => any;
+    'bindMember'?: (request: Request & IAuth, callback: (response: IStatusMessage) => void) => any;
+    'unbindMember'?: (request: Request & IAuth, callback: (response: IStatusMessage) => void) => any;
     'update'?: (request: Request & IAuth, callback: (response: IStatusMessage) => void) => any;
     'remove'?: (request: Request & IAuth, callback: (response: IStatusMessage) => void) => any;
-    'allFilter'?: (request: Request & IAuth, callback: (response: IStatusMessage & IInstitution[]) => void) => any;
+    'filterOne'?: (request: Request & IAuth, callback: (response: IStatusMessage & IInstitution) => void) => any;
+    'filterAll'?: (request: Request & IAuth, callback: (response: IStatusMessage & IInstitution[]) => void) => any;
     'counter'?: (request: Request & IAuth, callback: (response: IStatusMessage & number) => void) => any;
 }
 
@@ -25,11 +29,12 @@ export default function (itemName: string) {
         'getOne': getOne(),
         'getAll': getAll(),
         'save': save(),
-        'bindingMember': bindingMember(),
-        'unbindingMember': unbindingMember(),
+        'bindMember': bindMember(),
+        'unbindMember': unbindMember(),
         'update': update(),
         'remove': remove(),
-        'allFilter': allFilter(),
+        'filterOne': filterOne(),
+        'filterAll': filterAll(),
         'counter': counter()
     }
 
@@ -50,20 +55,23 @@ function getOne() {
 }
 
 function getAll() {
-    return (req: Request & IAuth, callback: Function) => {
+    return async (req: Request & IAuth, callback: Function) => {
         console.log("\tINSTITUTION_READ_ALL\n");
 
-        const select = 'context name'
+        const select = ['context', 'name', 'institutionType']
 
         const InstitutionModel = model('institution');
         const query = InstitutionModel.find({}).select(select)
 
-
-        query.exec((error: any, resp: IInstitution[]) => {
-            (error || !resp)
-                ? callback(msgErrFind)
-                : callback(resp)
-        });
+        try {
+            const data = <IInstitution[]>await query.exec();
+            if (data.length === 0) { callback(msgErrFind); return; }
+            callback(data);
+        }
+        catch (error) {
+            console.log("ERROR: ", error);
+            callback(msgErrUnexpected);
+        }
     }
 }
 
@@ -92,43 +100,101 @@ function save() {
     }
 }
 
-interface IBindingMember {
-    institutionId: string;
-
+interface IBindingInstitution {
     status: boolean;
-    profileId: string;
-    userId: string;
+    context: string,
+
+    _profile: string;
+    profileName: string;
+    _user: string;
+    userName: string;
+}
+interface IBindingUser {
+    status: boolean;
+    context: string,
+
+    _profile: string,
+    profileName: string,
+    _institution: string,
+    institutionName: string,
 }
 
-function bindingMember() {
+interface IReqBindMember {
+    status: boolean;
+    context: string;
+
+    _profile: IProfile & string;
+    profileName: string;
+
+    _institution: IInstitution & string;
+    institutionName: string;
+
+    _user: IUser & string;
+    userName: string;
+
+}
+
+function bindMember() {
     return async (req: Request & IAuth, callback: Function) => {
         console.log("\tINSTITUTION_MEMBER_BINDING\n");
 
-        const binding: IBindingMember = req.body;
+        const reqBindingMember: IReqBindMember = req.body;
+        const bindingInstitution: IBindingInstitution = reqBindingMember;
+        const bindingUser: IBindingUser = reqBindingMember;
 
-        const InstitutionModel = model('institution');
-        await InstitutionModel.updateOne({ _id: binding.institutionId }, { $push: { '_memberList': binding } })
+        try {
+            const InstitutionModel = model('institution');
+            await InstitutionModel.updateOne({ _id: reqBindingMember._institution }, { $push: { 'memberList': [bindingInstitution] } })
 
-        const UserModel = model('user');
-        await UserModel.updateOne({ _id: binding.userId }, { $push: { '_institutionList': binding.institutionId } });
+            const UserModel = model('user');
+            await UserModel.updateOne({ _id: reqBindingMember._user }, { $push: { 'dataAccess.bindList': [bindingUser] } });
 
-        callback(msgSuccess);
+            callback(msgSuccess);
+        }
+        catch (error) {
+            console.log("ERROR: ", error);
+            callback(msgErrUnexpected);
+        }
     }
 }
 
-function unbindingMember() {
+function unbindMember() {
     return async (req: Request & IAuth, callback: Function) => {
         console.log("\tINSTITUTION_MEMBER_UNBINDING\n");
 
-        const binding: IBindingMember = req.body;
+        const reqBindingMember: IReqBindMember = req.body;
+        const bindingInstitution: IBindingInstitution = {
+            status: reqBindingMember.status,
+            context: reqBindingMember.context,
+            _profile: reqBindingMember._profile,
+            profileName: reqBindingMember.profileName,
+            _user: reqBindingMember._user,
+            userName: reqBindingMember.userName
+        };
+        const bindingUser: IBindingUser = {
+            status: reqBindingMember.status,
+            context: reqBindingMember.context,
+            _profile: reqBindingMember._profile,
+            profileName: reqBindingMember.profileName,
+            _institution: reqBindingMember._institution,
+            institutionName: reqBindingMember.institutionName
+        };
 
-        const InstitutionModel = model('institution');
-        await InstitutionModel.updateOne({ _id: binding.institutionId }, { $pull: { '_memberList': binding } })
+        try {
+            const InstitutionModel = model('institution');
+            const q1 = await InstitutionModel.updateOne({ _id: reqBindingMember._institution }, { $pull: { 'memberList': bindingInstitution } })
+            console.log("q1", q1);
 
-        const UserModel = model('user');
-        await UserModel.updateOne({ _id: binding.profileId }, { $pull: { '_institutionList': binding.institutionId } });
+            const UserModel = model('user');
+            const q2 = await UserModel.updateOne({ _id: reqBindingMember._user }, { $pull: { 'dataAccess.bindList': bindingUser } });
+            console.log("q2", q2);
 
-        callback(msgSuccess)
+            callback(msgSuccess);
+        }
+        catch (error) {
+            console.log("ERROR: ", error);
+            callback(msgErrUnexpected);
+        }
     }
 }
 
@@ -163,16 +229,38 @@ function remove() {
     }
 }
 
-interface IQueryConfig {
-    populateList: { path: string, select?: string[] }[]
+function filterOne() {
+    return async (req: any, callback: Function) => {
+        console.log("\tINSTITUTION_FILTER_ONE\n");
+
+        const institution: IInstitutionBase = req.body.filter;
+        const config: IQueryConfig = req.body.queryConfig;
+
+        const InstitutionModel = model('institution');
+        const query = InstitutionModel.findOne(institution);
+
+        config.populateList.forEach((e) => {
+            query.populate({ path: e.path, select: e.select })
+        })
+
+        try {
+            const data = <IInstitution>await query.exec();
+            if (!data) { callback(msgErrFind); return; }
+            callback(data);
+        }
+        catch (error) {
+            console.log("ERROR: ", error);
+            callback(msgErrUnexpected);
+        }
+    }
 }
 
-function allFilter() {
+function filterAll() {
     return async (req: any, callback: Function) => {
-        console.log("\tINSTITUTION_FILTER\n");
+        console.log("\tINSTITUTION_FILTER_ALL\n");
 
-        const institution: any = req.body.object;
-        const config: IQueryConfig = req.body.config;
+        const institution: IInstitutionBase = req.body.filter;
+        const config: IQueryConfig = req.body.queryConfig;
 
         const InstitutionModel = model('institution');
         const query = InstitutionModel.find(institution);
@@ -182,11 +270,8 @@ function allFilter() {
         })
 
         try {
-            const data = <IInstitution[] | NativeError>await query.exec();
-            if (data instanceof NativeError) {
-                callback(msgErr5xx);
-                return;
-            }
+            const data = <IInstitution[]>await query.exec();
+            if (data.length === 0) { callback(msgErrFind); return; }
             callback(data);
         }
         catch (error) {
