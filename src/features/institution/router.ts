@@ -25,7 +25,7 @@ export default function (itemName: string) {
     router.put('/:id', Auth.isAuthorized, fnUpdate(itemCtrl));
     // router.put('/:id', fnUpdate(itemCtrl));
     router.delete('/:id', Auth.isAuthorized, fnRemove(itemCtrl));
-    // router.post('/filterOne/', fnFilterOne(itemCtrl));
+    router.post('/filterOne/', fnFilterOne(itemCtrl));
     router.post('/filterAll/', fnFilterAll(itemCtrl));
     // router.post('/filter/', Auth.isAuthorized, fnAllFilter(itemCtrl));
     router.post('/counter/', fnCounter(itemCtrl));
@@ -72,6 +72,12 @@ function fnUpdate(itemCtrl: IInstitutionCtrl) {
 function fnRemove(itemCtrl: IInstitutionCtrl) {
     return async (req: Request & IAuth, res: Response, next: NextFunction) => {
         itemCtrl.remove(req, (resp: IStatusMessage) => { res.json(resp) });
+    };
+}
+
+function fnFilterOne(itemCtrl: IInstitutionCtrl) {
+    return async (req: Request & IAuth, res: Response, next: NextFunction) => {
+        itemCtrl.filterOne(req, (resp: IInstitution & IStatusMessage) => { res.json(resp) });
     };
 }
 
