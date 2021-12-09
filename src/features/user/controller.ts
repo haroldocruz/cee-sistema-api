@@ -1,4 +1,4 @@
-import { Model, CastError, model } from "mongoose";
+import { Model, CastError, model, UpdateWriteOpResult } from "mongoose";
 import { Request } from "express";
 import { IUser, IUserBase } from './../../models/User';
 import item from "./model";
@@ -54,13 +54,26 @@ function getOne(ItemModel: Model<IUser>) {
 }
 
 function getAll(ItemModel: Model<IUser>) {
-    return (req: Request & IAuth, callback: Function) => {
+    return async (req: Request & IAuth, callback: Function) => {
         console.log("\tUSER_READ_ALL\n")
 
-        ItemModel.find({}, (error: any, resp: any) => { (error || !resp) ? callback(msgErrFind) : callback(resp) })
-            .populate({ path: 'dataAccess._profileList' })
-            // .select('groups')
-            .sort('order')
+
+        try {
+            const UserModel = model('user');
+            const query = UserModel.find({});
+
+            callback(await query.exec());
+        }
+        catch (error) {
+            console.error("\tUSER_READ_ALL_ERROR\n", error);
+            callback(msgErrUnexpected);
+        }
+
+
+        // ItemModel.find({}, (error: any, resp: any) => { (error || !resp) ? callback(msgErrFind) : callback(resp) })
+        //     .populate({ path: 'dataAccess._profileList' })
+        //     // .select('groups')
+        //     .sort('order')
     }
 }
 
@@ -81,13 +94,27 @@ function update(ItemModel: Model<IUser>) {
         console.log("\tUSER_UPDATE\n")
 
         const id = req.body._id || req.params.id;
-        await ItemModel.updateOne({ '_id': id }, req.body, {}, (error: any, data: any) => {
-            console.log(data);
-            (error) ? (() => { callback(msgErrUpd); console.log(error) })() : (data.nModified) ? callback(msgSuccess) : callback(msgErrUpdVoid)
-        });
 
-        // metadata.update(req.metadata, req.userId);
-        // }
+        const UserModel = model('user');
+        let data: UpdateWriteOpResult;
+        try {
+            const query = UserModel.updateOne({ '_id': id }, req.body);
+
+            data = await query.exec();
+
+            if (data.modifiedCount) {
+                callback(msgSuccess);
+                return;
+            }
+            else {
+                callback(msgErrUpdVoid);
+                return;
+            }
+        }
+        catch (error) {
+            console.log("\tUSER_UPDATE_ERROR\n", error);
+            callback(msgErrUpd);
+        }
     }
 }
 

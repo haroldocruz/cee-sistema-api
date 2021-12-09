@@ -1,7 +1,7 @@
 import { model, Model } from 'mongoose';
 import { Request } from "express";
 import { IAuth } from "../../authServices";
-import { IStatusMessage, msgErrConn, msgErrFind, msgErrRem, msgErrSave, msgErrUpd, msgSuccess } from "../../utils/messages";
+import { IStatusMessage, msgErrConn, msgErrFind, msgErrNoData, msgErrRem, msgErrSave, msgErrUpd, msgSuccess } from "../../utils/messages";
 import { IProfile } from '../../models/Profile';
 import item from './model';
 
@@ -207,11 +207,11 @@ function allFilter(ItemModel: any) {
         console.log("\tPROFILE_FILTER\n")
 
         ItemModel.find(req.body, (error: any, data: any) => {
-            (error || !data)
+            (error)
                 ? callback(msgErrConn)
-                : callback(data)
+                : (!data) ? callback(msgErrNoData)
+                    : callback(data)
         })
-            .populate('_userList');
     }
 }
 
