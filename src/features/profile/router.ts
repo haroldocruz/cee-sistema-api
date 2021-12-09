@@ -6,7 +6,7 @@ var router = express.Router();
 
 import controller from './controller';
 import { IProfile } from '../../models/Profile';
-import { IStatusMessage } from '../../messages';
+import { IStatusMessage } from '../../utils/messages';
 
 export default function (itemName: string) {
     var itemCtrl = controller(itemName);

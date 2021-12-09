@@ -1,4 +1,3 @@
-import { Context } from './enumerations/ContextEnum';
 import { Document } from 'mongoose';
 
 export interface IRouteDocument extends IRoute, Document {}

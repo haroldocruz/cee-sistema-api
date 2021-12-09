@@ -1,6 +1,6 @@
 import express, { NextFunction, Request, Response } from 'express';
 import { IAuth } from '../../authServices';
-import { IStatusMessage } from '../../messages';
+import { IStatusMessage } from '../../utils/messages';
 import controller from './controller';
 
 var router = express.Router();
