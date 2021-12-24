@@ -95,21 +95,15 @@ function update(ItemModel: Model<IUser>) {
 
         const id = req.body._id || req.params.id;
 
-        const UserModel = model('user');
-        let data: UpdateWriteOpResult;
         try {
+            const UserModel = model('user');
             const query = UserModel.updateOne({ '_id': id }, req.body);
 
-            data = await query.exec();
+            const data: UpdateWriteOpResult = await query.exec();
 
-            if (data.modifiedCount) {
-                callback(msgSuccess);
-                return;
-            }
-            else {
-                callback(msgErrUpdVoid);
-                return;
-            }
+            (data.modifiedCount)
+                ? callback(msgSuccess)
+                : callback(msgErrUpdVoid)
         }
         catch (error) {
             console.log("\tUSER_UPDATE_ERROR\n", error);
