@@ -1,7 +1,7 @@
-import { model, NativeError } from 'mongoose';
+import { model } from 'mongoose';
 import { Request } from "express";
 import { IAuth } from "../../authServices";
-import { IStatusMessage, msgErr5xx, msgErrConn, msgErrFind, msgErrRem, msgErrSave, msgErrUnexpected, msgSuccess } from "../../utils/messages";
+import { IStatusMessage, msgErrConn, msgErrFind, msgErrRem, msgErrSave, msgErrUnexpected, msgErrUpd, msgSuccess } from "../../utils/messages";
 import { IInstitution, IInstitutionBase } from '../../models/Institution';
 import item from './model';
 import { IProfile } from '../../models/Profile';
@@ -50,7 +50,9 @@ function getOne() {
             (error || !data)
                 ? callback(msgErrFind)
                 : callback(data)
-        });
+        })
+        .populate('memberList._user', 'name')
+        .populate('memberList._profile', 'name');
     }
 }
 
@@ -139,15 +141,21 @@ function bindMember() {
         console.log("\tINSTITUTION_MEMBER_BINDING\n");
 
         const reqBindingMember: IReqBindMember = req.body;
+
         const bindingInstitution: IBindingInstitution = reqBindingMember;
         const bindingUser: IBindingUser = reqBindingMember;
 
         try {
             const InstitutionModel = model('institution');
-            await InstitutionModel.updateOne({ _id: reqBindingMember._institution }, { $push: { 'memberList': [bindingInstitution] } })
+            const q1 = await InstitutionModel.updateOne({ _id: reqBindingMember._institution }, { $push: { 'memberList': [bindingInstitution] } })
 
             const UserModel = model('user');
-            await UserModel.updateOne({ _id: reqBindingMember._user }, { $push: { 'dataAccess.bindList': [bindingUser] } });
+            const q2 = await UserModel.updateOne({ _id: reqBindingMember._user }, { $push: { 'dataAccess.bindList': [bindingUser] } });
+
+            if (q1.modifiedCount === 0 && q2.modifiedCount === 0) {
+                callback(msgErrUpd);
+                return;
+            }
 
             callback(msgSuccess);
         }
@@ -158,36 +166,43 @@ function bindMember() {
     }
 }
 
+interface IUnbindingInstitution {
+    _profile: string;
+    _user: string;
+}
+
+interface IUnbindingUser {
+    _profile: string;
+    _institution: string;
+}
+
 function unbindMember() {
     return async (req: Request & IAuth, callback: Function) => {
         console.log("\tINSTITUTION_MEMBER_UNBINDING\n");
 
         const reqBindingMember: IReqBindMember = req.body;
-        const bindingInstitution: IBindingInstitution = {
-            status: reqBindingMember.status,
-            context: reqBindingMember.context,
+
+        const bindingInstitution: IUnbindingInstitution = {
             _profile: reqBindingMember._profile,
-            profileName: reqBindingMember.profileName,
-            _user: reqBindingMember._user,
-            userName: reqBindingMember.userName
+            _user: reqBindingMember._user
         };
-        const bindingUser: IBindingUser = {
-            status: reqBindingMember.status,
-            context: reqBindingMember.context,
+
+        const bindingUser: IUnbindingUser = {
             _profile: reqBindingMember._profile,
-            profileName: reqBindingMember.profileName,
-            _institution: reqBindingMember._institution,
-            institutionName: reqBindingMember.institutionName
+            _institution: reqBindingMember._institution
         };
 
         try {
             const InstitutionModel = model('institution');
             const q1 = await InstitutionModel.updateOne({ _id: reqBindingMember._institution }, { $pull: { 'memberList': bindingInstitution } })
-            console.log("q1", q1);
 
             const UserModel = model('user');
             const q2 = await UserModel.updateOne({ _id: reqBindingMember._user }, { $pull: { 'dataAccess.bindList': bindingUser } });
-            console.log("q2", q2);
+
+            if (q1.modifiedCount === 0 && q2.modifiedCount === 0) {
+                callback(msgErrUpd);
+                return;
+            }
 
             callback(msgSuccess);
         }
