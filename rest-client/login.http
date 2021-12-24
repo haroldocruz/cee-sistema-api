@@ -1,5 +1,5 @@
 ### CONSTANTS
-@URI = http://localhost:8080/login
+@URI = http://localhost:3000/auth/login
 @TOKEN = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRlIjoxNjEyMTM1MTgxNzUwLCJfaWQiOiI2MDE0Y2Y0Zjc1ZmZhZjRlNjA2YTYwYmQiLCJwcm9maWxlIjp7fSwiaWF0IjoxNjEyMTM1MTgxfQ.N4lfzmwDIs6eCNIagkt-M9glajDpbYD01UiovuUREy0
 
 ### LogIn
@@ -7,8 +7,8 @@ POST {{URI}} HTTP/1.1
 Content-Type: application/json
 
 {
-	"cpf": "123",
-	"dataAccess": {"password": "123"}
+	"username": "12345678901",
+	"password": "12345678901"
 }
 
 ### LogOff
@@ -22,7 +22,7 @@ Content-Type: application/json
 authorization: {{TOKEN}}
 
 {
-	"dataAccess": {"password": "123"}
+	"dataAccess": {"password": "12345678901"}
 }
 
 ### LogOut
