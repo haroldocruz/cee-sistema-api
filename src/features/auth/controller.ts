@@ -87,7 +87,7 @@ function fnLogIn(User: Model<IUser>) {
         }
     }
 
-    function verifyUsername(loginData: ILoginData) {
+    function verifyUsername(loginData: ILoginData): string {
         let username = loginData.username.trim();
         if (Util.isValidCpf(username)) {
             return "cpf";
