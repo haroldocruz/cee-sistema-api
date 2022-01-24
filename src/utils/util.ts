@@ -1,3 +1,4 @@
+import filesystem from "fs";
 
 export function toggle(validate) {
     return (validate) ? false : true;
@@ -55,6 +56,20 @@ export const Util = {
     isValidCpf,
     isValidEmail
 }
+
+export const getAllFilesFromFolder = (dir) => {
+    let results = [];
+    for (const file of filesystem.readdirSync(dir)) {
+        const path = `${dir}/${file}`
+        const stat = filesystem.statSync(path);
+        if (stat && stat.isDirectory()) {
+            results = [...results, ...getAllFilesFromFolder(file)]
+        } else {
+            results.push(file);
+        }
+    };
+    return results;
+};
 
 export function isValidCpf(strCPF) {
     var Soma;
