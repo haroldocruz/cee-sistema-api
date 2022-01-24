@@ -1,5 +1,6 @@
 import { Model, CastError, model, UpdateWriteOpResult } from "mongoose";
 import { Request } from "express";
+
 import { IUser, IUserBase } from './../../models/User';
 import item from "./model";
 import { msgErrConn, msgErrFind, msgErrRem, msgErrSave, msgErrUnexpected, msgErrUpd, msgErrUpdVoid, msgSuccess } from '../../utils/messages';
@@ -11,6 +12,7 @@ export interface IUserCtrl {
     'getOne': (arg0: Request & IAuth, callback: any) => any;
     'getAll': (arg0: Request & IAuth, callback: any) => any;
     'save': (arg0: Request & IAuth, callback: any) => any;
+    'uploadImage': (arg0: Request & IAuth, callback: any) => any;
     'update': (arg0: Request & IAuth, callback: any) => any;
     'remove': (arg0: Request & IAuth, callback: any) => any;
     'filterOne': (arg0: Request & IAuth, callback: any) => any;
@@ -27,6 +29,7 @@ export default function (itemName: string) {
         'getOne': getOne(ItemModel),
         'getAll': getAll(ItemModel),
         'save': save(ItemModel),
+        'uploadImage': uploadImage(ItemModel),
         'update': update(ItemModel),
         'remove': remove(ItemModel),
         'filterOne': filterOne(),
@@ -47,6 +50,9 @@ function isValidAccessLevel(accessLevel: string, list: Array<string>) {
 function getOne(ItemModel: Model<IUser>) {
     return (req: Request & IAuth, callback: Function) => {
         console.log("\tUSER_READ_ONE\n")
+        
+        console.log("req.connection", req.connection);
+        console.log("req.socket", req.socket);
 
         ItemModel.findOne({ '_id': req.params.id }, (error: any, data: any) => { (error || !data) ? callback(msgErrFind) : callback(data) })
         // .populate({ path: '_indicator', populate: { path: '_critery' } })
@@ -86,6 +92,31 @@ function save(ItemModel: Model<IUser>) {
             (error) ? (() => { callback(msgErrSave); console.log(error) })() : callback(msgSuccess)
         });
 
+    }
+}
+
+function uploadImage(ItemModel: Model<IUser>) {
+    return async (req: Request & IAuth, callback: Function) => {
+        console.log("\tUSER_UPLOAD_IMAGE\n")
+
+        const id = req.body._id || req.params.id;
+
+        const imagePath: string = req.file.filename;
+
+        try {
+            const UserModel = model('user');
+            const query = UserModel.updateOne({ '_id': id }, { 'image.path': imagePath });
+
+            const data: UpdateWriteOpResult = await query.exec();
+
+            (data.modifiedCount)
+                ? callback(msgSuccess)
+                : callback(msgErrUpdVoid)
+        }
+        catch (error) {
+            console.log("\tUSER_UPDATE_ERROR\n", error);
+            callback(msgErrUpd);
+        }
     }
 }
 

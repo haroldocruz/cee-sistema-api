@@ -34,13 +34,11 @@ export enum MaritalStatusEnum {
 // }
 
 export interface IUserImage {
-    avatarUrl?: string;
-    photoUrl?: string;
+    path?: string;
 }
 
 const UserImage = {
-    avatarUrl: { type: String },
-    photoUrl: { type: String }
+    path: { type: String }
 }
 
 export interface IBindInUser {

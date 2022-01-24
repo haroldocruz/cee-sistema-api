@@ -1,4 +1,8 @@
 import express, { NextFunction, Request, Response } from 'express';
+
+import multer from "multer";
+import multerConfig from "./../../config/multer";
+
 import { IAuth } from '../../authServices';
 import { IUserBase } from './../../models/User';
 import controller, { IUserCtrl } from './controller';
@@ -8,6 +12,8 @@ var router = express.Router();
 export default function (itemName: string) {
     var itemCtrl = controller(itemName);
 
+    const upload = multer(multerConfig);
+
     //const model('group').find({"role": {$in: []}})
 
     const ALLOWS = ['SuperUser', 'Administrador', 'Técnicos']
@@ -15,6 +21,7 @@ export default function (itemName: string) {
     router.get('/', fnGetAll(itemCtrl));
     router.get('/:id', fnGetOne(itemCtrl));
     router.post('/', fnSave(itemCtrl));
+    router.post('/image/:id', upload.single('image'), fnUploadImage(itemCtrl));
     router.put('/:id', fnUpdate(itemCtrl));
     router.delete('/:id', fnRemove(itemCtrl));
     router.post('/filterOne/', fnFilterOne(itemCtrl));
@@ -46,6 +53,12 @@ function fnGetAll(itemCtrl: IUserCtrl) {
 function fnSave(itemCtrl: IUserCtrl) {
     return (req: Request & IAuth, res: Response, next: NextFunction) => {
         itemCtrl.save(req, (resp: IUserBase) => { res.json(resp) });
+    };
+}
+
+function fnUploadImage(itemCtrl: IUserCtrl) {
+    return (req: Request & IAuth, res: Response, next: NextFunction) => {
+        itemCtrl.uploadImage(req, (resp: IUserBase) => { res.json(resp) });
     };
 }
 
