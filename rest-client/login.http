@@ -1,5 +1,5 @@
 ### CONSTANTS
-@URI = http://localhost:3000/auth/login
+@URI = http://localhost:4410/auth/login
 @TOKEN = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRlIjoxNjEyMTM1MTgxNzUwLCJfaWQiOiI2MDE0Y2Y0Zjc1ZmZhZjRlNjA2YTYwYmQiLCJwcm9maWxlIjp7fSwiaWF0IjoxNjEyMTM1MTgxfQ.N4lfzmwDIs6eCNIagkt-M9glajDpbYD01UiovuUREy0
 
 ### LogIn

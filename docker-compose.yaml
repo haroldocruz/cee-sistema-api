@@ -7,6 +7,6 @@ services:
     entrypoint: ./.docker/entrypoint.sh
     container_name: CEE-SISTEMA-CONTAINER
     ports: 
-      - 3000:3000
+      - 4410:4410
     volumes: 
       - .:/home/node/app

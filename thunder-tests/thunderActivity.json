@@ -1,0 +1,35 @@
+[
+    {
+        "_id": "696ee787-ba5e-4180-ba60-310d2b67539a",
+        "colId": "history",
+        "containerId": "",
+        "name": "http://localhost:4410/avaliador/consultar",
+        "url": "http://localhost:4410/avaliador/consultar",
+        "method": "GET",
+        "sortNum": 0,
+        "created": "2023-03-26T16:37:26.417Z",
+        "modified": "2023-03-26T16:37:26.417Z",
+        "headers": [],
+        "params": [],
+        "tests": []
+    },
+    {
+        "_id": "fd317b84-f872-4d89-8db2-be66b289a9d1",
+        "colId": "history",
+        "containerId": "",
+        "name": "http://localhost:4410/avaliador/incluir",
+        "url": "http://localhost:4410/avaliador/incluir",
+        "method": "POST",
+        "sortNum": 0,
+        "created": "2023-03-26T16:37:26.417Z",
+        "modified": "2023-03-26T16:38:49.154Z",
+        "headers": [],
+        "params": [],
+        "body": {
+            "type": "json",
+            "raw": "{\n  \"situation\": \"Habilitado\",\n  \"evaluatorName\": \"Haroldo\",\n  \"formationName\": \"Tecnólogo em Sistemas para Internet\",\n  \"description\": \"Aqui vai uma descrição\"\n}",
+            "form": []
+        },
+        "tests": []
+    }
+]
